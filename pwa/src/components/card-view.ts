@@ -56,7 +56,11 @@ export class CardView extends LitElement {
         <div>
           <mwc-icon-button raised id="card">
             <slot>
-              <img src="${this.card}.png" alt="deck of cards" loading="lazy" />
+              <img
+                src="assets/${this.card}.png"
+                alt="${this.card}"
+                loading="lazy"
+              />
             </slot>
           </mwc-icon-button>
         </div>

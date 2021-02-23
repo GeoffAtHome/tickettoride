@@ -9,19 +9,15 @@
     ]
   },
   "hosting": {
-    "public": "public",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ]
+    "public": "./pwa/dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
   },
   "emulators": {
     "functions": {
       "port": 5001
     },
     "database": {
-      "port": 9010
+      "port": 9000
     },
     "hosting": {
       "port": 5000

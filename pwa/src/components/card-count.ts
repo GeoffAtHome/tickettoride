@@ -64,8 +64,8 @@ export class CardCount extends LitElement {
         <mwc-icon-button raised id="card">
           <slot>
             <img
-              src="${this.card.name}.png"
-              alt="deck of cards"
+              src="assets/${this.card.name}.png"
+              alt="${this.card.name}"
               loading="lazy"
             />
           </slot>

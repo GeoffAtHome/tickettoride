@@ -265,10 +265,7 @@ export class MyApp extends connect(store)(LitElement) {
         You are now ${this._offline ? 'offline' : 'online'}.
       </snack-bar>
       <pwa-install></pwa-install>
-      <pwa-update
-        offlineToastDuration="0"
-        swpath="pwabuilder-sw.js"
-      ></pwa-update>
+      <pwa-update offlineToastDuration="0"></pwa-update>
     `;
   }
 

@@ -91,7 +91,9 @@ export class StartGame extends PageViewElement {
 
       <div class="top">
         <div>
-          <mwc-button raised>New game / start game</mwc-button>
+          <mwc-button raised @click=${this.preStartGame}
+            >New game / start game</mwc-button
+          >
         </div>
       </div>
     `;
@@ -104,11 +106,15 @@ export class StartGame extends PageViewElement {
 
   private keydown(e: KeyboardEvent) {
     if (e.code === 'Enter') {
-      const player = this.playerText.value.trim();
-      const game = this.gameText.value.trim();
-      if (player.length !== 0 && game.length !== 0) {
-        this.startJoinGame(player, game);
-      }
+      this.preStartGame();
+    }
+  }
+
+  private preStartGame() {
+    const player = this.playerText.value.trim();
+    const game = this.gameText.value.trim();
+    if (player.length !== 0 && game.length !== 0) {
+      this.startJoinGame(player, game);
     }
   }
 
@@ -121,13 +127,11 @@ export class StartGame extends PageViewElement {
       if (players) {
         // If this play in the list?
         this.players = [...players];
-        if (!players.includes(player)) {
-          this.players.push(player);
-          // Save the player
-          await addPlayerToGame(game, player);
-        }
-      } else {
-        this.players = [];
+      }
+      if (!this.players.includes(player)) {
+        this.players.push(player);
+        // Save the player
+        await addPlayerToGame(game, player);
       }
     } else {
       await addGame(game);
