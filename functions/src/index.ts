@@ -239,6 +239,10 @@ async function endTurn(
 
   await setData(game, path, playerData);
   // Move onto next player
+  await nextPlayer(game, player);
+}
+
+async function nextPlayer(game: string, player: string) {
   const players: Array<string> = await getData(game, "players");
   const index = (players.indexOf(player) + 1) % players.length;
   await setData(game, "game/firstCard", true);
@@ -535,5 +539,18 @@ export const addPlayerToGame = functions.https.onCall(
       return "Player added";
     }
     return "Player already in game";
+  }
+);
+
+export const takeRouteCards = functions.https.onCall(
+  async (data: { game: string; player: string }, context) => {
+    const { game, player } = data;
+    const whosTurn = await getData(game, "game/whosTurn");
+
+    if (whosTurn === player) {
+      await nextPlayer(game, player);
+      return "success";
+    }
+    return "Wrong player";
   }
 );

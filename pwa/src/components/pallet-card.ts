@@ -33,6 +33,7 @@ import {
   layTunnel,
   newGame,
   takeCardFromPallet,
+  takeRouteCards,
   takeTopCard,
 } from '../reducers/firebase-functions';
 import { Game } from '../../utils/ticketToRideTypes';
@@ -208,11 +209,8 @@ export class PalletCard extends PageViewElement {
     }
   }
 
-  private takeRouteCards(event: CustomEvent) {
-    const { player } = event.detail;
-    if (player === this.whosTurn) {
-      console.log('takeRouteCards');
-    }
+  private async takeRouteCards() {
+    await takeRouteCards(this.gameName, this.player);
   }
 
   private async layTunnel() {

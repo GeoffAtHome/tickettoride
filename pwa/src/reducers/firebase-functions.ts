@@ -2,12 +2,16 @@ import firebase from 'firebase/app';
 import 'firebase/database';
 import 'firebase/functions';
 
+const local = true;
+const databaseURL = local
+  ? 'http://localhost:9000/?ns=ticket-to-ride-game-default-rtdb'
+  : 'https://ticket-to-ride-game-default-rtdb.europe-west1.firebasedatabase.app';
+
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: 'AIzaSyDhqMyKT-98_g6CTuvbPuZbD8FPACFnWqI',
   authDomain: 'ticket-to-ride-game.firebaseapp.com',
-  databaseURL: 'http://localhost:9010/?ns=ticket-to-ride-game-default-rtdb',
-  // databaseURL:    'https://ticket-to-ride-game-default-rtdb.europe-west1.firebasedatabase.app',
+  databaseURL: databaseURL,
   projectId: 'ticket-to-ride-game',
   storageBucket: 'ticket-to-ride-game.appspot.com',
   messagingSenderId: '938373703194',
@@ -18,7 +22,7 @@ const firebaseConfig = {
 const fbApp = firebase.initializeApp!(firebaseConfig);
 const fbRef = firebase.database!().ref();
 const fbFunctions = firebase.functions();
-fbFunctions.useFunctionsEmulator('http://localhost:5001');
+if (local) fbFunctions.useFunctionsEmulator('http://localhost:5001');
 
 export const dbMyHand = fbRef.child('hand');
 export const dbTheGame = fbRef.child('game');
@@ -117,6 +121,16 @@ export async function addGame(game: string) {
 export async function addPlayerToGame(game: string, player: string) {
   const addPlayerToGame = firebase.functions().httpsCallable('addPlayerToGame');
   addPlayerToGame({
+    game: game,
+    player: player,
+  }).then(result => {
+    console.log(result.data);
+  });
+}
+
+export async function takeRouteCards(game: string, player: string) {
+  const takeRouteCards = firebase.functions().httpsCallable('takeRouteCards');
+  takeRouteCards({
     game: game,
     player: player,
   }).then(result => {
