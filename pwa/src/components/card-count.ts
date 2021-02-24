@@ -37,22 +37,26 @@ export class CardCount extends LitElement {
     return [
       SharedStyles,
       css`
+        :host {
+          display: block;
+          width: var(--card-size);
+          height: calc(0.8 * var(--card-size));
+          background-color: rgb(200, 200, 200);
+        }
         img {
           width: 100%;
         }
         mwc-icon-button {
-          --mdc-icon-button-size: 200px;
-          --mdc-icon-size: 200px;
+          position: relative;
+          top: -15%;
+          --mdc-icon-button-size: var(--card-size);
+          --mdc-icon-size: var(--card-size);
         }
         .count {
           text-align: center;
-          margin-top: -35px;
-        }
-        .deck {
-          height: 200px;
-          display: grid;
-          grid-template-rows: 1fr auto;
-          justify-content: center;
+          position: relative;
+          top: -4px;
+          font-size: var(--card-text-size);
         }
       `,
     ];
@@ -60,18 +64,16 @@ export class CardCount extends LitElement {
 
   protected render() {
     return html`
-      <div class="deck">
-        <mwc-icon-button raised id="card">
-          <slot>
-            <img
-              src="assets/${this.card.name}.png"
-              alt="${this.card.name}"
-              loading="lazy"
-            />
-          </slot>
-        </mwc-icon-button>
-        <div class="count">${this.card.count}</div>
-      </div>
+      <mwc-icon-button raised id="card">
+        <slot>
+          <img
+            src="assets/${this.card.name}.png"
+            alt="${this.card.name}"
+            loading="lazy"
+          />
+          <div class="count">${this.card.count}</div>
+        </slot>
+      </mwc-icon-button>
     `;
   }
 

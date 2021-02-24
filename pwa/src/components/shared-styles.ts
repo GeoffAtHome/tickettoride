@@ -14,15 +14,16 @@ export const SharedStyles = css`
   :host {
     display: block;
     box-sizing: border-box;
+    --card-size: 200px;
+    --card-text-size: 12px;
   }
 
   section {
-    padding: 24px;
+    padding: 5px;
     background: var(--app-section-odd-color);
   }
 
   section > * {
-    max-width: 600px;
     margin-right: auto;
     margin-left: auto;
   }
@@ -51,16 +52,14 @@ export const SharedStyles = css`
     display: block;
   }
 
-  .circle {
-    display: block;
-    width: 64px;
-    height: 64px;
-    margin: 0 auto;
-    text-align: center;
-    border-radius: 50%;
-    background: var(--app-primary-color);
-    color: var(--app-light-text-color);
-    font-size: 30px;
-    line-height: 64px;
+  .top {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  card-count,
+  card-view {
+    margin: 5px;
   }
 `;

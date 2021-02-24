@@ -87,35 +87,7 @@ export class PalletCard extends PageViewElement {
           width: 200px;
         }
 
-        .top {
-          display: grid;
-          place-items: center;
-        }
-
-        img {
-          width: 200px;
-        }
-        .count {
-          text-align: center;
-        }
-
-        .board {
-          display: grid;
-          grid-template-columns: minmax(200px, 15%) 1fr 1fr;
-        }
-
-        .deck {
-          display: grid;
-          grid-template-rows: auto 1fr auto;
-          justify-content: center;
-        }
-        .pallet {
-          display: grid;
-          grid-template-rows: auto;
-          justify-content: center;
-        }
-
-        .hand {
+        .decks {
           display: flex;
           flex-wrap: wrap;
           justify-content: center;
@@ -132,54 +104,45 @@ export class PalletCard extends PageViewElement {
           }">Start the Game</mwc-button>
         </div>
       </div>
-
-      <div class="board">
-        <div>
-          <card-count @clicked-card="${this.takeTopCard}"
-            .card="${{ name: 'front', count: this.deckCount }}"
-          ></card-count>
-          <card-count
-            .card="${{ name: this.lastCard, count: this.discardCount }}"
-          ></card-count>
-        </div>
-        <div class="pallet">
-          ${this.pallet.map((item, index) => {
-            return html` <card-view
-              .index=${index}
-              .card="${item}"
-              @clicked-card="${this.takeCardFromPallet}"
-            ></card-view>`;
-          })}
-        </div>
-        <div class="pallet">
-          ${this.tunnel.map(item => {
-            return html`
-              <div class="card">
-                <card-view
-                  .card="${item}"
-                  @clicked-card="${this.tunnelCardClicked}"
-                ></card-view>
-              </div>
-            `;
-          })}
-        </div>
-      </div>
-
-      <div>
-        <div class="players">
-            <player-view
-              @take-cards="${this.takeCards}"
-              @take-route-cards="${this.takeRouteCards}"
-              @lay-tunnel="${this.layTunnel}"
-              @lay-route="${this.layRoute}"
-              @lay-station="${this.layStation}"
-              .hand="${this.hand}"
-              .player="${this.player}"
-              .whosTurn="${this.whosTurn}"
-              .stations="${this.stations}"
-            ></player-view>
-            </div>>
-      </div>
+      <h1>Discard and deck</h1>
+      <section class='top'>
+        <card-count @clicked-card="${this.takeTopCard}"
+          .card="${{ name: 'front', count: this.deckCount }}"
+        ></card-count>
+        <card-count
+          .card="${{ name: this.lastCard, count: this.discardCount }}"
+        ></card-count>
+      </section>
+      <h1>Pallet</h1>
+      <section class='top'>
+        ${this.pallet.map((item, index) => {
+          return html` <card-view
+            .index=${index}
+            .card="${item}"
+            @clicked-card="${this.takeCardFromPallet}"
+          ></card-view>`;
+        })}
+      </section>
+      <h1>Tunnel cards</h1>
+      <section class='top'>
+        ${this.tunnel.map(item => {
+          return html` <card-view .card="${item}"></card-view> `;
+        })}
+      </section>
+      <h1>Hand</h1>
+      <section class='top'>
+        <player-view
+          @take-cards="${this.takeCards}"
+          @take-route-cards="${this.takeRouteCards}"
+          @lay-tunnel="${this.layTunnel}"
+          @lay-route="${this.layRoute}"
+          @lay-station="${this.layStation}"
+          .hand="${this.hand}"
+          .player="${this.player}"
+          .whosTurn="${this.whosTurn}"
+          .stations="${this.stations}"
+        ></player-view>
+      </section>
     `;
   }
 
@@ -239,14 +202,5 @@ export class PalletCard extends PageViewElement {
   private async layRoute(event: CustomEvent) {
     const { cards, player } = event.detail;
     await layRoute(this.gameName, player, cards);
-  }
-
-  private tunnelCardClicked(event: CustomEvent) {
-    const { card } = event.detail;
-    this.lastCard = card;
-
-    // When a tunnel card is clicked - move all three tunnel cards to the discard stack
-    this.discard = [...this.discard, ...this.tunnel];
-    this.tunnel = [];
   }
 }

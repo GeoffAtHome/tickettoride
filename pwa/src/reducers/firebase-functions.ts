@@ -4,7 +4,7 @@ import 'firebase/functions';
 
 const local = true;
 const databaseURL = local
-  ? 'http://localhost:9000/?ns=ticket-to-ride-game-default-rtdb'
+  ? 'http://localhost:9010/?ns=ticket-to-ride-game-default-rtdb'
   : 'https://ticket-to-ride-game-default-rtdb.europe-west1.firebasedatabase.app';
 
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional

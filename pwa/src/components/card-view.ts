@@ -29,22 +29,20 @@ export class CardView extends LitElement {
     return [
       SharedStyles,
       css`
+        :host {
+          display: block;
+          width: var(--card-size);
+          height: calc(0.65 * var(--card-size));
+          background-color: rgb(200, 200, 200);
+        }
         img {
           width: 100%;
         }
         mwc-icon-button {
-          --mdc-icon-button-size: 200px;
-          --mdc-icon-size: 200px;
-        }
-        .count {
-          text-align: center;
-          margin-top: -35px;
-        }
-        .deck {
-          height: 140px;
-          display: grid;
-          grid-template-rows: auto;
-          justify-content: center;
+          position: relative;
+          top: -16px;
+          --mdc-icon-button-size: var(--card-size);
+          --mdc-icon-size: var(--card-size);
         }
       `,
     ];
@@ -52,19 +50,15 @@ export class CardView extends LitElement {
 
   protected render() {
     return html`
-      <div class="deck">
-        <div>
-          <mwc-icon-button raised id="card">
-            <slot>
-              <img
-                src="assets/${this.card}.png"
-                alt="${this.card}"
-                loading="lazy"
-              />
-            </slot>
-          </mwc-icon-button>
-        </div>
-      </div>
+      <mwc-icon-button raised id="card">
+        <slot>
+          <img
+            src="assets/${this.card}.png"
+            alt="${this.card}"
+            loading="lazy"
+          />
+        </slot>
+      </mwc-icon-button>
     `;
   }
 

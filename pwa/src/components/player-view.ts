@@ -33,6 +33,22 @@ export function findPlayer(player: string, thePlayers: Array<Player>) {
   return thePlayer[0];
 }
 
+interface SortOrder {
+  [index: string]: number;
+}
+
+const sortOrder: SortOrder = {
+  locomotive: 0,
+  red: 1,
+  orange: 2,
+  yellow: 3,
+  green: 4,
+  blue: 5,
+  pink: 6,
+  white: 7,
+  black: 8,
+};
+
 @customElement('player-view')
 export class PlayerView extends LitElement {
   @query('#hand')
@@ -63,34 +79,24 @@ export class PlayerView extends LitElement {
   routeValid: boolean = false;
 
   static get styles() {
-    return [
-      SharedStyles,
-      css`
-        .top {
-          display: grid;
-          place-items: center;
-        }
-        .hand {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
-        }
-      `,
-    ];
+    return [SharedStyles, css``];
   }
 
   protected render() {
-    return html` <div class="player">
-      <h3>${this.player}: ${this.hand.length + this.route.length}</h3>
-      <div class="hand" id="hand">
-        ${this.theHand.map(item => {
-          return html` <card-count
-            .card="${item}"
-            @clicked-card="${this.cardClicked}"
-          ></card-count>`;
-        })}
-      </div>
-      <div class="top">
+    return html` <h3>
+        ${this.player}: ${this.hand.length + this.route.length}
+      </h3>
+      <section class="top">
+        ${this.theHand
+          .sort((a, b) => sortOrder[a.name] - sortOrder[b.name])
+          .map(item => {
+            return html` <card-count
+              .card="${item}"
+              @clicked-card="${this.cardClicked}"
+            ></card-count>`;
+          })}
+      </section>
+      <section class="top">
         <div>
           <mwc-button
             raised
@@ -119,18 +125,19 @@ export class PlayerView extends LitElement {
             >Lay station</mwc-button
           >
         </div>
-      </div>
-      <div class="hand" id="hand">
-        ${this.theRoute.map(item => {
-          return html`<div>
-            <card-count
-              .card="${item}"
-              @clicked-card="${this.routeClicked}"
-            ></card-count>
-          </div>`;
-        })}
-      </div>
-    </div>`;
+      </section>
+      <section class="top">
+        ${this.theRoute
+          .sort((a, b) => sortOrder[a.name] - sortOrder[b.name])
+          .map(item => {
+            return html`
+              <card-count
+                .card="${item}"
+                @clicked-card="${this.routeClicked}"
+              ></card-count>
+            `;
+          })}
+      </section>`;
   }
 
   private cardClicked(event: CustomEvent) {
