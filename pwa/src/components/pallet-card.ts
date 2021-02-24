@@ -98,15 +98,10 @@ export class PalletCard extends PageViewElement {
 
   protected render() {
     return html`
-      <div class="top">
-          <mwc-button raised @click="${
-            this.startTheGame
-          }">Start the Game</mwc-button>
-        </div>
-      </div>
       <h1>Discard and deck</h1>
-      <section class='top'>
-        <card-count @clicked-card="${this.takeTopCard}"
+      <section class="top">
+        <card-count
+          @clicked-card="${this.takeTopCard}"
           .card="${{ name: 'front', count: this.deckCount }}"
         ></card-count>
         <card-count
@@ -114,7 +109,7 @@ export class PalletCard extends PageViewElement {
         ></card-count>
       </section>
       <h1>Pallet</h1>
-      <section class='top'>
+      <section class="top">
         ${this.pallet.map((item, index) => {
           return html` <card-view
             .index=${index}
@@ -124,13 +119,13 @@ export class PalletCard extends PageViewElement {
         })}
       </section>
       <h1>Tunnel cards</h1>
-      <section class='top'>
+      <section class="top">
         ${this.tunnel.map(item => {
           return html` <card-view .card="${item}"></card-view> `;
         })}
       </section>
       <h1>Hand</h1>
-      <section class='top'>
+      <section class="top">
         <player-view
           @take-cards="${this.takeCards}"
           @take-route-cards="${this.takeRouteCards}"
@@ -178,10 +173,6 @@ export class PalletCard extends PageViewElement {
 
   private async layTunnel() {
     await layTunnel(this.gameName, this.player);
-  }
-
-  private async startTheGame() {
-    await newGame(this.gameName);
   }
 
   private async takeTopCard() {

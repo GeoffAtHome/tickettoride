@@ -1,4 +1,11 @@
-import { html, customElement, css, property, query } from 'lit-element';
+import {
+  html,
+  customElement,
+  css,
+  property,
+  query,
+  internalProperty,
+} from 'lit-element';
 import { PageViewElement } from './page-view-element';
 
 // This element is connected to the Redux store.
@@ -13,8 +20,11 @@ import {
   addGame,
   addPlayerToGame,
   getFbData,
+  getFbDb,
+  newGame,
 } from '../reducers/firebase-functions';
-import { updateUserGameState } from '../actions/app';
+import { navigate, updateUserGameState } from '../actions/app';
+import { FirebaseError } from 'firebase';
 
 @customElement('start-game')
 export class StartGame extends PageViewElement {
@@ -32,6 +42,9 @@ export class StartGame extends PageViewElement {
 
   @property({ type: String })
   private player: string = '';
+
+  @internalProperty()
+  dbThePlayers!: firebase.database.Reference;
 
   static get styles() {
     return [
@@ -91,8 +104,20 @@ export class StartGame extends PageViewElement {
 
       <div class="top">
         <div>
-          <mwc-button raised @click=${this.preStartGame}
-            >New game / start game</mwc-button
+          <mwc-button raised @click="${this.preStartGame}"
+            >Add player</mwc-button
+          >
+          <mwc-button
+            raised
+            @click="${this.startGame}"
+            ?disabled=${this.players.length < 2}
+            >Start game</mwc-button
+          >
+          <mwc-button
+            raised
+            @click=${this.goToGame}
+            ?disabled=${this.players.length < 2}
+            >Go to the game</mwc-button
           >
         </div>
       </div>
@@ -102,6 +127,14 @@ export class StartGame extends PageViewElement {
   protected firstUpdated(_changedProperties: any) {
     this.playerText.value = this.player;
     this.gameText.value = this.gameName;
+    this.listenForThePlayers(this.gameName);
+  }
+
+  private listenForThePlayers(game: string) {
+    this.dbThePlayers = getFbDb(game + '/players');
+    this.dbThePlayers.on('value', snap => {
+      this.players = snap.val();
+    });
   }
 
   private keydown(e: KeyboardEvent) {
@@ -113,9 +146,24 @@ export class StartGame extends PageViewElement {
   private preStartGame() {
     const player = this.playerText.value.trim();
     const game = this.gameText.value.trim();
+    if (game !== this.gameName) {
+      this.dbThePlayers.off();
+      this.listenForThePlayers(game);
+    }
     if (player.length !== 0 && game.length !== 0) {
       this.startJoinGame(player, game);
     }
+  }
+
+  private async startGame() {
+    await newGame(this.gameName);
+  }
+
+  private goToGame() {
+    store.dispatch(updateUserGameState(this.player, this.gameName));
+    localStorage.setItem('game', this.gameName);
+    localStorage.setItem('player', this.player);
+    window.location.href = window.location.href.replace('start', 'pallet');
   }
 
   private async startJoinGame(player: string, game: string) {
@@ -142,9 +190,8 @@ export class StartGame extends PageViewElement {
       await addGame(game);
       // Save the player
       await addPlayerToGame(game, player);
+      this.player = player;
+      this.gameName = game;
     }
-    store.dispatch(updateUserGameState(player, game));
-    localStorage.setItem('game', game);
-    localStorage.setItem('player', player);
   }
 }

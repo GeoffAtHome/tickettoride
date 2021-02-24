@@ -33,7 +33,6 @@ export class CardView extends LitElement {
           display: block;
           width: var(--card-size);
           height: calc(0.65 * var(--card-size));
-          background-color: rgb(200, 200, 200);
         }
         img {
           width: 100%;

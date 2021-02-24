@@ -41,7 +41,6 @@ export class CardCount extends LitElement {
           display: block;
           width: var(--card-size);
           height: calc(0.8 * var(--card-size));
-          background-color: rgb(200, 200, 200);
         }
         img {
           width: 100%;
