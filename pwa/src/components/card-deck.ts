@@ -29,18 +29,6 @@ const letterToCard: LetterToCard = {
   l: 'locomotive',
 };
 
-const cardToLetter: LetterToCard = {
-  black: 'k',
-  blue: 'b',
-  green: 'g',
-  orange: 'o',
-  pink: 'p',
-  red: 'r',
-  white: 'w',
-  yellow: 'y',
-  locomotive: 'l',
-};
-
 export function getCardsFromString(list: string) {
   const cards: Array<string> = [];
   if (list !== undefined) {
@@ -49,22 +37,7 @@ export function getCardsFromString(list: string) {
       cards.push(letterToCard[card]);
     });
   }
-
-  console.log(getStringFromCards(cards));
-
   return cards;
-}
-
-export function getStringFromCards(cards: Array<string>) {
-  let list: string = '';
-  if (cards !== undefined) {
-    const listArray: Array<string> = [];
-    cards.forEach(card => {
-      listArray.push(cardToLetter[card]);
-    });
-    list = listArray.join('');
-  }
-  return list;
 }
 
 export function createDeck() {

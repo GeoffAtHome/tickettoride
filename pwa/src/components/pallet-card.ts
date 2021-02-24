@@ -127,7 +127,6 @@ export class PalletCard extends PageViewElement {
       <h1>Hand</h1>
       <section class="top">
         <player-view
-          @take-cards="${this.takeCards}"
           @take-route-cards="${this.takeRouteCards}"
           @lay-tunnel="${this.layTunnel}"
           @lay-route="${this.layRoute}"
@@ -158,13 +157,6 @@ export class PalletCard extends PageViewElement {
       const hand = snap.val();
       this.hand = getCardsFromString(hand);
     });
-  }
-
-  private takeCards(event: CustomEvent) {
-    const { player } = event.detail;
-    if (player === this.whosTurn) {
-      console.log('takeCards');
-    }
   }
 
   private async takeRouteCards() {
