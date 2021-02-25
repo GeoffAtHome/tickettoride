@@ -53,8 +53,11 @@ export class WelcomePage extends PageViewElement {
         IMPORTANT: The 'game' name is important. Using a different name from
         other players will mean each player will be in a different game.
       </p>
-      The play order is the same as players are entered. Currently this cannot
-      be changed.
+      <p>
+        The play order is the same as players are entered. Currently this cannot
+        be changed.
+      </p>
+
       <p></p>
       <p>
         Pressing 'START GAME' will reset the game so avoid pressing this
