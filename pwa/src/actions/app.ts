@@ -86,14 +86,8 @@ const loadPage: ActionCreator<ThunkResult> = (page: string) => dispatch => {
         // navigating to view1 after my-view1 is loaded.
       });
       break;
-    case 'pack':
-      import('../components/deck-cards');
-      break;
     case 'start':
       import('../components/start-game');
-      break;
-    case 'discard':
-      import('../components/discard-pile');
       break;
     case 'pallet':
       import('../components/pallet-card');

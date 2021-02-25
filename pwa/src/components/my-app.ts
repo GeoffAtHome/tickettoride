@@ -202,10 +202,6 @@ export class MyApp extends connect(store)(LitElement) {
             >
             <a ?selected="${this._page === 'start'}" href="/#start">Start</a>
             <a ?selected="${this._page === 'pallet'}" href="/#pallet">Game</a>
-            <a ?selected="${this._page === 'pack'}" href="/#pack">Pack</a>
-            <a ?selected="${this._page === 'discard'}" href="/#discard"
-              >Discard</a
-            >
           </nav>
         </div>
         <!-- Header -->
@@ -239,14 +235,6 @@ export class MyApp extends connect(store)(LitElement) {
                 .gameName="${this._game}"
               >
               </start-game>
-              <deck-cards
-                class="page"
-                ?active="${this._page === 'pack'}"
-              ></deck-cards>
-              <discard-pile
-                class="page"
-                ?active="${this._page === 'discard'}"
-              ></discard-pile>
               <pallet-card
                 class="page"
                 ?active="${this._page === 'pallet'}"
