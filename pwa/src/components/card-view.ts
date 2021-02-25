@@ -36,6 +36,7 @@ export class CardView extends LitElement {
         }
         img {
           width: 100%;
+          border-radius: 8%;
         }
         mwc-icon-button {
           position: relative;

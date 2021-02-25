@@ -83,10 +83,7 @@ export class PlayerView extends LitElement {
   }
 
   protected render() {
-    return html` <h3>
-        ${this.player}: ${this.hand.length + this.route.length}
-      </h3>
-      <section class="top">
+    return html` <section class="top">
         ${this.theHand
           .sort((a, b) => sortOrder[a.name] - sortOrder[b.name])
           .map(item => {

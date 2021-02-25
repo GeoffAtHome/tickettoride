@@ -432,11 +432,19 @@ export const takeCardFromPallet = functions.https.onCall(
   ) => {
     const { game, player, card, index } = data;
     const whosTurn = await getData(game, "game/whosTurn");
-
+    
     if (whosTurn === player) {
-      // Place the card into players hand
+      // Need to check if first or second cards
+      const firstCard = await getData(game, "game/firstCard");
+      
+      // Get the card being played
       const cardLetter = cardToLetter[card];
 
+      // You cannot draw a locomotive if this is your second card
+      if(card === 'locomotive' && firstCard === false) {
+        return "You can't take a locomotive"
+      }
+      // Place the card into players hand
       // Get the players hand
       let hand: string = await getData(game, player);
 
@@ -459,13 +467,11 @@ export const takeCardFromPallet = functions.https.onCall(
       await setData(game, "game/pallet", getStringFromCards(pallet));
 
       // If the card is a locomotive or is the second card the turn ends
-      const firstCard = await getData(game, "game/firstCard");
       if (card === "locomotive" || !firstCard) {
         await endTurn(game, player, hand.length, 0, 0);
       } else {
         await setData(game, "game/firstCard", false);
       }
-
       return "success";
     }
     return "Wrong player";

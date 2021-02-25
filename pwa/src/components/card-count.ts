@@ -44,6 +44,7 @@ export class CardCount extends LitElement {
         }
         img {
           width: 100%;
+          border-radius: 8%;
         }
         mwc-icon-button {
           position: relative;
