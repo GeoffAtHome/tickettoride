@@ -30,23 +30,32 @@ export class WelcomePage extends PageViewElement {
 
   protected render() {
     return html`
-      <h1>Initial app version v0.0.1</h1>
-      <h3>Starting a game</h3>
+      <h1>Ticket to Ride cards for the game v0.0.1</h1>
+      <h3>Background</h3>
       <p>
-        Enter the name of the game. If it doesn't exist a new game will be
-        created, otherwise players in game will be displayed.<br />
-        When ready (all players entered), each player clicks start in the order
-        of play. The cards are then deal and the game begins with the first
-        player ready to play.
+        This was writen to allow to Ticket to Ride to be played remotely during
+        the pandemic (2020 -2021). You still require the board, trains and
+        stations to play the game. This PWA manages the deck of cards, discard
+        pile and the players hand.
       </p>
-      <h3>Lay station</h3>
+      <h3>Starting the game.</h3>
       <p>
-        Enabled if you have a station and the right amount of cards picked to
-        play a station
+        Select 'START' from the menu and enter your name 'player' and the name
+        of the game 'game' and the click 'ADD PLAYER'. Other people playing do
+        the same from their phones, tablets or other devices. When all players
+        who want to play are listed Someone presses 'START GAME' to create the
+        game to be played. Following this, everyone presses 'GO TO GAME'
       </p>
-      <p>When pressed: reduces station count and play cards to discard pick</p>
-      <p>Moves onto next player</p>
-
+      <p>
+        IMPORTANT: The 'game' name is important. Using a different name from
+        other players will mean each player will be in a different game.
+      </p>
+      <p>
+        Pressing 'START GAME' will reset the game so avoid pressing this
+        mid-game.
+      </p>
+      <h3>Playing the game.</h3>
+      <p>The rules from the game have been implemented</p>
       <br />
       <h1>Releases</h1>
       <ul>
