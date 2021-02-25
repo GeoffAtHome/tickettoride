@@ -14,7 +14,7 @@ export const SharedStyles = css`
   :host {
     display: block;
     box-sizing: border-box;
-    --card-size: 200px;
+    --card-size: max(calc(100vw / 6), 155px);
     --card-text-size: 12px;
   }
 

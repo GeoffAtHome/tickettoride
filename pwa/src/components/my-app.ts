@@ -41,24 +41,6 @@ function _BackButtonClicked() {
   window.history.back();
 }
 
-function getTitle(page: string) {
-  let title = '';
-
-  switch (page.toLowerCase()) {
-    default:
-    case 'welcome':
-      title = 'Ticket to Ride cards';
-      break;
-    case 'pack':
-      title = 'Complete deck';
-      break;
-
-    case 'pallet':
-      title = 'Pallet';
-      break;
-  }
-  return title;
-}
 @customElement('my-app')
 export class MyApp extends connect(store)(LitElement) {
   @query('#track')
@@ -295,7 +277,7 @@ export class MyApp extends connect(store)(LitElement) {
     this._game = state.app!.game;
     this._player = state.app!.player;
 
-    this.appTitle = getTitle(this._page);
+    this.appTitle = this.getTitle(this._page);
   }
 
   handleStart(e: TouchEvent) {
@@ -313,5 +295,20 @@ export class MyApp extends connect(store)(LitElement) {
     } else if (deltaX < -100 && deltaY < 100) {
       window.history.forward();
     }
+  }
+
+  private getTitle(page: string) {
+    let title = '';
+
+    switch (page.toLowerCase()) {
+      default:
+      case 'welcome':
+        title = 'Ticket to Ride cards';
+        break;
+      case 'pallet':
+        title = this._game + ': ' + this._player;
+        break;
+    }
+    return title;
   }
 }

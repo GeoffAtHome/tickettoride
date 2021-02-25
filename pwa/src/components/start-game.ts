@@ -125,11 +125,18 @@ export class StartGame extends PageViewElement {
   }
 
   protected firstUpdated(_changedProperties: any) {
+    if (this.player === '') this.player = this.getItem('player');
+    if (this.gameName === '') this.gameName = this.getItem('game');
     this.playerText.value = this.player;
     this.gameText.value = this.gameName;
     this.listenForThePlayers(this.gameName);
   }
 
+  private getItem(path: string) {
+    const item = localStorage.getItem(path);
+    if (item === null) return '';
+    return item;
+  }
   private listenForThePlayers(game: string) {
     this.dbThePlayers = getFbDb(game + '/players');
     this.dbThePlayers.on('value', snap => {
@@ -190,8 +197,8 @@ export class StartGame extends PageViewElement {
       await addGame(game);
       // Save the player
       await addPlayerToGame(game, player);
-      this.player = player;
-      this.gameName = game;
     }
+    this.player = player;
+    this.gameName = game;
   }
 }

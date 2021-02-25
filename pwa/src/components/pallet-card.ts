@@ -73,6 +73,18 @@ export class PalletCard extends PageViewElement {
   @internalProperty()
   private stations = 0;
 
+  @internalProperty()
+  private pplayers: Array<string> = [];
+
+  @internalProperty()
+  private pcards: Array<number> = [];
+
+  @internalProperty()
+  private pscores: Array<number> = [];
+
+  @internalProperty()
+  private pstations: Array<number> = [];
+
   static get styles() {
     return [
       SharedStyles,
@@ -99,6 +111,21 @@ export class PalletCard extends PageViewElement {
   protected render() {
     return html`
       <h1>Discard and deck</h1>
+      <section class="top">
+        ${this.pplayers.map((item, index) => {
+          if (this.whosTurn === item)
+            return html`<div>
+              <b
+                >${item}: ${this.pscores[index]} : H${this.pcards[index]} :
+                S${this.pstations[index]}</b
+              >
+            </div>`;
+          return html`<div>
+            ${item}: ${this.pscores[index]} : H${this.pcards[index]} :
+            S${this.pstations[index]}
+          </div>`;
+        })}
+      </section>
       <section class="top">
         <card-count
           @clicked-card="${this.takeTopCard}"
@@ -151,6 +178,16 @@ export class PalletCard extends PageViewElement {
       this.tunnel = getCardsFromString(theGame.tunnel);
       this.pallet = getCardsFromString(theGame.pallet);
       this.stations = theGame.playerData[this.player].stations;
+      this.pplayers = Object.keys(theGame.playerData);
+      this.pcards = this.pplayers.map(
+        player => theGame.playerData[player].cards
+      );
+      this.pscores = this.pplayers.map(
+        player => theGame.playerData[player].score
+      );
+      this.pstations = this.pplayers.map(
+        player => theGame.playerData[player].stations
+      );
     });
     const dbMyHand = getFbDb(this.gameName + '/' + this.player);
     dbMyHand.on('value', snap => {
