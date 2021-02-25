@@ -159,8 +159,8 @@ export class MyApp extends connect(store)(LitElement) {
 
         .img-welcome {
           display: inline;
-          max-width: 200px;
-          max-height: 30px;
+          max-width: 100px;
+          max-height: 100px;
         }
       `,
     ];
@@ -171,12 +171,8 @@ export class MyApp extends connect(store)(LitElement) {
     return html`
       <mwc-drawer hasHeader type="dismissible" .open="${this._drawerOpened}">
         <span slot="title"
-          ><img
-            class="img-welcome"
-            src="../../images/welcome.png"
-            alt="Menu"
-          />Menu</span
-        >
+          ><img class="img-welcome" src="assets/logo.png" alt="Menu"
+        /></span>
         <div>
           <nav class="toolbar-list">
             <a ?selected="${this._page === 'welcome'}" href="/#welcome"
