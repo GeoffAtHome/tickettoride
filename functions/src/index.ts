@@ -9,14 +9,6 @@ import {
 } from "../../PWA/utils/ticketToRideTypes";
 admin.initializeApp(functions.config().firebase);
 
-// Start writing Firebase Functions
-// https://firebase.google.com/docs/functions/typescript
-
-export const helloWorld = functions.https.onRequest((request, response) => {
-  functions.logger.info("Hello logs!", { structuredData: true });
-  response.send("Hello from Firebase!");
-});
-
 /**
  * Creates a new deck of cards
  * @return {Array<string>} The new, un-shuffled deck of cards
