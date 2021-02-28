@@ -30,12 +30,12 @@ export class WelcomePage extends PageViewElement {
 
   protected render() {
     return html`
-      <h1>Ticket to Ride cards for the game v0.0.1</h1>
+      <h1>Ticket to Ride cards for the game v0.0.2</h1>
       <h3>Background</h3>
       <p>
-        This was writen to allow 'Ticket to Ride' to be played remotely during
-        the pandemic (2020 -2021). You still require the game for the board,
-        trains and stations to play the game.
+        This was written to allow 'Ticket to Ride' to be played remotely during
+        the Covid 19 pandemic (2020 -2021). You still require the game for the
+        board, trains and stations to play the game.
       </p>
       <p>
         This web app manages the deck of cards, discard pile and the players
@@ -68,6 +68,7 @@ export class WelcomePage extends PageViewElement {
       <br />
       <h1>Releases</h1>
       <ul>
+        <li>v0.0.2 - Notifications for who's turn it is.</li>
         <li>v0.0.1 - Initial version</li>
       </ul>
     `;
