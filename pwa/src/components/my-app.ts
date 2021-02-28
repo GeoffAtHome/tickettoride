@@ -58,8 +58,8 @@ export class MyApp extends connect(store)(LitElement) {
   @property({ type: Boolean })
   private _snackbarOpened = false;
 
-  @property({ type: Boolean })
-  private _offline = false;
+  @property({ type: String })
+  private _message: string = '';
 
   @property({ type: String })
   private _game: string = '';
@@ -221,6 +221,7 @@ export class MyApp extends connect(store)(LitElement) {
                 ?active="${this._page === 'pallet'}"
                 .player="${this._player}"
                 .gameName="${this._game}"
+                .page="${this._page}"
               ></pallet-card>
               <my-view404
                 class="page"
@@ -231,7 +232,7 @@ export class MyApp extends connect(store)(LitElement) {
         </div>
       </mwc-drawer>
       <snack-bar ?active="${this._snackbarOpened}">
-        You are now ${this._offline ? 'offline' : 'online'}.
+        ${this._message}.
       </snack-bar>
       <pwa-install></pwa-install>
       <pwa-update offlineToastDuration="0"></pwa-update>
@@ -270,7 +271,7 @@ export class MyApp extends connect(store)(LitElement) {
 
   stateChanged(state: RootState) {
     this._page = state.app!.page;
-    this._offline = state.app!.offline;
+    this._message = state.app!.message;
     this._snackbarOpened = state.app!.snackbarOpened;
     this._drawerOpened = state.app!.drawerOpened;
     this._game = state.app!.game;

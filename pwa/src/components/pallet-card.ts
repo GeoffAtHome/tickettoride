@@ -26,17 +26,17 @@ import './card-view';
 
 import './player-view';
 import {
-  dbMyHand,
   getFbDb,
   layRoute,
   layStation,
   layTunnel,
-  newGame,
   takeCardFromPallet,
   takeRouteCards,
   takeTopCard,
 } from '../reducers/firebase-functions';
 import { Game } from '../../utils/ticketToRideTypes';
+import { RootState, store } from '../store';
+import { notifyMessage } from '../actions/app';
 
 @customElement('pallet-card')
 export class PalletCard extends PageViewElement {
@@ -51,6 +51,9 @@ export class PalletCard extends PageViewElement {
 
   @property({ type: String })
   private player = '';
+
+  @property({ type: String })
+  page: string = '';
 
   @internalProperty()
   private hand: Array<string> = [];
@@ -74,16 +77,19 @@ export class PalletCard extends PageViewElement {
   private stations = 0;
 
   @internalProperty()
-  private pplayers: Array<string> = [];
+  private pPlayers: Array<string> = [];
 
   @internalProperty()
-  private pcards: Array<number> = [];
+  private pCards: Array<number> = [];
 
   @internalProperty()
-  private pscores: Array<number> = [];
+  private pScores: Array<number> = [];
 
   @internalProperty()
-  private pstations: Array<number> = [];
+  private pStations: Array<number> = [];
+
+  @internalProperty()
+  lastPlayer: string = '';
 
   static get styles() {
     return [
@@ -112,17 +118,17 @@ export class PalletCard extends PageViewElement {
     return html`
       <h1>Discard and deck</h1>
       <section class="top">
-        ${this.pplayers.map((item, index) => {
+        ${this.pPlayers.map((item, index) => {
           if (this.whosTurn === item)
             return html`<div>
               <b
-                >${item}: ${this.pscores[index]} : H${this.pcards[index]} :
-                S${this.pstations[index]}</b
+                >${item}: ${this.pScores[index]} : H${this.pCards[index]} :
+                S${this.pStations[index]}</b
               >
             </div>`;
           return html`<div>
-            ${item}: ${this.pscores[index]} : H${this.pcards[index]} :
-            S${this.pstations[index]}
+            ${item}: ${this.pScores[index]} : H${this.pCards[index]} :
+            S${this.pStations[index]}
           </div>`;
         })}
       </section>
@@ -178,16 +184,27 @@ export class PalletCard extends PageViewElement {
       this.tunnel = getCardsFromString(theGame.tunnel);
       this.pallet = getCardsFromString(theGame.pallet);
       this.stations = theGame.playerData[this.player].stations;
-      this.pplayers = Object.keys(theGame.playerData);
-      this.pcards = this.pplayers.map(
+      this.pPlayers = Object.keys(theGame.playerData);
+      this.pCards = this.pPlayers.map(
         player => theGame.playerData[player].cards
       );
-      this.pscores = this.pplayers.map(
+      this.pScores = this.pPlayers.map(
         player => theGame.playerData[player].score
       );
-      this.pstations = this.pplayers.map(
+      this.pStations = this.pPlayers.map(
         player => theGame.playerData[player].stations
       );
+
+      if (this.page === 'pallet' && this.lastPlayer !== this.whosTurn) {
+        // Player has changes
+        this.lastPlayer = this.whosTurn;
+
+        if (this.lastPlayer === this.player) {
+          store.dispatch(notifyMessage('Your turn'));
+        } else {
+          store.dispatch(notifyMessage(this.lastPlayer + "'s turn"));
+        }
+      }
     });
     const dbMyHand = getFbDb(this.gameName + '/' + this.player);
     dbMyHand.on('value', snap => {

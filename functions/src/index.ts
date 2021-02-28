@@ -432,17 +432,17 @@ export const takeCardFromPallet = functions.https.onCall(
   ) => {
     const { game, player, card, index } = data;
     const whosTurn = await getData(game, "game/whosTurn");
-    
+
     if (whosTurn === player) {
       // Need to check if first or second cards
       const firstCard = await getData(game, "game/firstCard");
-      
+
       // Get the card being played
       const cardLetter = cardToLetter[card];
 
       // You cannot draw a locomotive if this is your second card
-      if(card === 'locomotive' && firstCard === false) {
-        return "You can't take a locomotive"
+      if (card === "locomotive" && firstCard === false) {
+        return "You can't take a locomotive";
       }
       // Place the card into players hand
       // Get the players hand
