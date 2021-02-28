@@ -235,7 +235,7 @@ export class MyApp extends connect(store)(LitElement) {
         ${this._message}.
       </snack-bar>
       <pwa-install></pwa-install>
-      <pwa-update offlineToastDuration="0"></pwa-update>
+      <pwa-update offlineToastDuration="0" swpath="sw.js"></pwa-update>
     `;
   }
 
