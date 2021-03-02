@@ -36,6 +36,7 @@ import '@pwabuilder/pwainstall';
 import '@pwabuilder/pwaupdate';
 import { menuIcon, arrowBackIcon } from './my-icons';
 import './snack-bar';
+import { getItem } from '../../utils/getItem';
 
 function _BackButtonClicked() {
   window.history.back();
@@ -258,11 +259,8 @@ export class MyApp extends connect(store)(LitElement) {
     this.track.addEventListener('touchstart', this.handleStart, false);
     this.track.addEventListener('touchend', this.handleEnd, false);
 
-    const game = localStorage.getItem('game');
-    if (game) this._game = game;
-
-    const player = localStorage.getItem('player');
-    if (player) this._player = player;
+    if (this._player === '') this._player = getItem('player');
+    if (this._game === '') this._game = getItem('game');
   }
 
   private _menuButtonClicked() {
@@ -306,6 +304,8 @@ export class MyApp extends connect(store)(LitElement) {
         title = 'Ticket to Ride cards';
         break;
       case 'pallet':
+        if (this._player === '') this._player = getItem('player');
+        if (this._game === '') this._game = getItem('game');
         title = this._game + ': ' + this._player;
         break;
     }

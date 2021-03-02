@@ -37,6 +37,7 @@ import {
 import { Game } from '../../utils/ticketToRideTypes';
 import { RootState, store } from '../store';
 import { notifyMessage } from '../actions/app';
+import { getItem } from '../../utils/getItem';
 
 @customElement('pallet-card')
 export class PalletCard extends PageViewElement {
@@ -174,35 +175,39 @@ export class PalletCard extends PageViewElement {
   }
 
   protected firstUpdated(_changedProperties: any) {
+    if (this.player === '') this.player = getItem('player');
+    if (this.gameName === '') this.gameName = getItem('game');
     const dbTheGame = getFbDb(this.gameName + '/game');
     dbTheGame.on('value', snap => {
       const theGame: Game = snap.val();
-      this.deckCount = theGame.deckCount;
-      this.discardCount = theGame.discardCount;
-      this.lastCard = theGame.lastCard;
-      this.whosTurn = theGame.whosTurn;
-      this.tunnel = getCardsFromString(theGame.tunnel);
-      this.pallet = getCardsFromString(theGame.pallet);
-      this.stations = theGame.playerData[this.player].stations;
-      this.pPlayers = Object.keys(theGame.playerData);
-      this.pCards = this.pPlayers.map(
-        player => theGame.playerData[player].cards
-      );
-      this.pScores = this.pPlayers.map(
-        player => theGame.playerData[player].score
-      );
-      this.pStations = this.pPlayers.map(
-        player => theGame.playerData[player].stations
-      );
+      if (theGame !== null) {
+        this.deckCount = theGame.deckCount;
+        this.discardCount = theGame.discardCount;
+        this.lastCard = theGame.lastCard;
+        this.whosTurn = theGame.whosTurn;
+        this.tunnel = getCardsFromString(theGame.tunnel);
+        this.pallet = getCardsFromString(theGame.pallet);
+        this.stations = theGame.playerData[this.player].stations;
+        this.pPlayers = Object.keys(theGame.playerData);
+        this.pCards = this.pPlayers.map(
+          player => theGame.playerData[player].cards
+        );
+        this.pScores = this.pPlayers.map(
+          player => theGame.playerData[player].score
+        );
+        this.pStations = this.pPlayers.map(
+          player => theGame.playerData[player].stations
+        );
 
-      if (this.page === 'pallet' && this.lastPlayer !== this.whosTurn) {
-        // Player has changes
-        this.lastPlayer = this.whosTurn;
+        if (this.page === 'pallet' && this.lastPlayer !== this.whosTurn) {
+          // Player has changes
+          this.lastPlayer = this.whosTurn;
 
-        if (this.lastPlayer === this.player) {
-          store.dispatch(notifyMessage('Your turn'));
-        } else {
-          store.dispatch(notifyMessage(this.lastPlayer + "'s turn"));
+          if (this.lastPlayer === this.player) {
+            store.dispatch(notifyMessage('Your turn'));
+          } else {
+            store.dispatch(notifyMessage(this.lastPlayer + "'s turn"));
+          }
         }
       }
     });

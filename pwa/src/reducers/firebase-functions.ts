@@ -2,7 +2,7 @@ import firebase from 'firebase/app';
 import 'firebase/database';
 import 'firebase/functions';
 
-const local = false;
+const local = true;
 const databaseURL = local
   ? 'http://localhost:9010/?ns=ticket-to-ride-game-default-rtdb'
   : 'https://ticket-to-ride-game-default-rtdb.europe-west1.firebasedatabase.app';
