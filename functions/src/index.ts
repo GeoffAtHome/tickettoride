@@ -303,8 +303,9 @@ async function removeCardsFromHand(
   return hand.length;
 }
 
-export const newGame = functions.https.onCall(
-  async (data: { game: string }, context) => {
+export const newGame = functions
+  .region("europe-west2")
+  .https.onCall(async (data: { game: string }, context) => {
     const { game } = data;
 
     let deck: Array<string> = [];
@@ -367,60 +368,62 @@ export const newGame = functions.https.onCall(
     await setData(game, "discard", "");
 
     return "newGame";
-  }
-);
+  });
 
-export const layRoute = functions.https.onCall(
-  async (
-    data: { game: string; player: string; cards: Array<string> },
-    context
-  ) => {
-    const { game, player, cards } = data;
-    const whosTurn = await getData(game, "game/whosTurn");
+export const layRoute = functions
+  .region("europe-west2")
+  .https.onCall(
+    async (
+      data: { game: string; player: string; cards: Array<string> },
+      context
+    ) => {
+      const { game, player, cards } = data;
+      const whosTurn = await getData(game, "game/whosTurn");
 
-    if (whosTurn === player) {
-      const cardsLeftInHand = await removeCardsFromHand(game, player, cards);
+      if (whosTurn === player) {
+        const cardsLeftInHand = await removeCardsFromHand(game, player, cards);
 
-      // Workout score based on tunnel cards
-      const cardSet = getHand(cards);
-      let primaryCard = "";
-      // Get dominate card for cards played
-      // Set should contain one or two colours and one must be a locomotive
-      switch (cardSet.length) {
-        case 1:
-          primaryCard = cardSet[0].name;
-          break;
-        case 2:
-          primaryCard =
-            cardSet[0].name === "locomotive"
-              ? cardSet[1].name
-              : cardSet[0].name;
-          break;
-        default:
-          console.log("Error in hand");
-          break;
+        // Workout score based on tunnel cards
+        const cardSet = getHand(cards);
+        let primaryCard = "";
+        // Get dominate card for cards played
+        // Set should contain one or two colours and one must be a locomotive
+        switch (cardSet.length) {
+          case 1:
+            primaryCard = cardSet[0].name;
+            break;
+          case 2:
+            primaryCard =
+              cardSet[0].name === "locomotive"
+                ? cardSet[1].name
+                : cardSet[0].name;
+            break;
+          default:
+            console.log("Error in hand");
+            break;
+        }
+        let routeLength = cards.length;
+
+        // Workout score based on tunnel cards
+        const tunnel: Array<string> = getCardsFromString(
+          await getData(game, "game/tunnel")
+        );
+        tunnel.forEach((element) => {
+          if (element == primaryCard) routeLength -= 1;
+        });
+
+        // End the turn
+        await endTurn(game, player, cardsLeftInHand, routeLength, 0);
+
+        return "success";
       }
-      let routeLength = cards.length;
-
-      // Workout score based on tunnel cards
-      const tunnel: Array<string> = getCardsFromString(
-        await getData(game, "game/tunnel")
-      );
-      tunnel.forEach((element) => {
-        if (element == primaryCard) routeLength -= 1;
-      });
-
-      // End the turn
-      await endTurn(game, player, cardsLeftInHand, routeLength, 0);
-
-      return "success";
+      return "Wrong player";
     }
-    return "Wrong player";
-  }
-);
+  );
 
-export const takeTopCard = functions.https.onCall(
-  async (data: { game: string; player: string }, context) => {
+export const takeTopCard = functions
+  .region("europe-west2")
+  .https.onCall(async (data: { game: string; player: string }, context) => {
     const { game, player } = data;
     const whosTurn = await getData(game, "game/whosTurn");
 
@@ -448,105 +451,109 @@ export const takeTopCard = functions.https.onCall(
       return "success";
     }
     return "Wrong player";
-  }
-);
+  });
 
-export const takeCardFromPallet = functions.https.onCall(
-  async (
-    data: { game: string; player: string; card: string; index: number },
-    context
-  ) => {
-    const { game, player, card, index } = data;
-    const whosTurn = await getData(game, "game/whosTurn");
+export const takeCardFromPallet = functions
+  .region("europe-west2")
+  .https.onCall(
+    async (
+      data: { game: string; player: string; card: string; index: number },
+      context
+    ) => {
+      const { game, player, card, index } = data;
+      const whosTurn = await getData(game, "game/whosTurn");
 
-    if (whosTurn === player) {
-      // Need to check if first or second cards
-      const firstCard = await getData(game, "game/firstCard");
+      if (whosTurn === player) {
+        // Need to check if first or second cards
+        const firstCard = await getData(game, "game/firstCard");
 
-      // Get the card being played
-      const cardLetter = cardToLetter[card];
+        // Get the card being played
+        const cardLetter = cardToLetter[card];
 
-      // You cannot draw a locomotive if this is your second card
-      if (card === "locomotive" && firstCard === false) {
-        return "You can't take a locomotive";
+        // You cannot draw a locomotive if this is your second card
+        if (card === "locomotive" && firstCard === false) {
+          return "You can't take a locomotive";
+        }
+        // Place the card into players hand
+        // Get the players hand
+        let hand: string = await getData(game, player);
+
+        // Add card to hand
+        hand += cardLetter;
+
+        // Save the hand
+        await setData(game, player, hand);
+
+        const pallet: Array<string> = getCardsFromString(
+          await getData(game, "game/pallet")
+        );
+        // Take card from deck and replace in pallet
+        const newCard = await getCard(game);
+
+        // Find old card in pallet and replace
+        pallet[index] = newCard;
+
+        // If the pallet has three locomotives blow the pallet and try again.
+        let locomotives = pallet.filter((card) => {
+          return card === "locomotive";
+        });
+
+        if (locomotives.length >= 3) {
+          do {
+            // Put the pallet on the discard pile and draw five new cards
+            addCardsToDiscardPile(game, pallet);
+            pallet.length = 0;
+
+            pallet.push(await getCard(game));
+            pallet.push(await getCard(game));
+            pallet.push(await getCard(game));
+            pallet.push(await getCard(game));
+            pallet.push(await getCard(game));
+            locomotives = pallet.filter((card) => {
+              return card === "locomotive";
+            });
+          } while (locomotives.length >= 3);
+        }
+
+        // Save the pallet
+        await setData(game, "game/pallet", getStringFromCards(pallet));
+
+        // If the card is a locomotive or is the second card the turn ends
+        if (card === "locomotive" || !firstCard) {
+          await endTurn(game, player, hand.length, 0, 0);
+        } else {
+          await setData(game, "game/firstCard", false);
+        }
+        return "success";
       }
-      // Place the card into players hand
-      // Get the players hand
-      let hand: string = await getData(game, player);
-
-      // Add card to hand
-      hand += cardLetter;
-
-      // Save the hand
-      await setData(game, player, hand);
-
-      const pallet: Array<string> = getCardsFromString(
-        await getData(game, "game/pallet")
-      );
-      // Take card from deck and replace in pallet
-      const newCard = await getCard(game);
-
-      // Find old card in pallet and replace
-      pallet[index] = newCard;
-
-      // If the pallet has three locomotives blow the pallet and try again.
-      let locomotives = pallet.filter((card) => {
-        return card === "locomotive";
-      });
-
-      if (locomotives.length >= 3) {
-        do {
-          // Put the pallet on the discard pile and draw five new cards
-          addCardsToDiscardPile(game, pallet);
-          pallet.length = 0;
-
-          pallet.push(await getCard(game));
-          pallet.push(await getCard(game));
-          pallet.push(await getCard(game));
-          pallet.push(await getCard(game));
-          pallet.push(await getCard(game));
-          locomotives = pallet.filter((card) => {
-            return card === "locomotive";
-          });
-        } while (locomotives.length >= 3);
-      }
-
-      // Save the pallet
-      await setData(game, "game/pallet", getStringFromCards(pallet));
-
-      // If the card is a locomotive or is the second card the turn ends
-      if (card === "locomotive" || !firstCard) {
-        await endTurn(game, player, hand.length, 0, 0);
-      } else {
-        await setData(game, "game/firstCard", false);
-      }
-      return "success";
+      return "Wrong player";
     }
-    return "Wrong player";
-  }
-);
+  );
 
-export const layStation = functions.https.onCall(
-  async (
-    data: { game: string; player: string; cards: Array<string> },
-    context
-  ) => {
-    const { game, player, cards } = data;
-    const whosTurn = await getData(game, "game/whosTurn");
+export const layStation = functions
+  .region("europe-west2")
+  .https.onCall(
+    async (
+      data: { game: string; player: string; cards: Array<string> },
+      context
+    ) => {
+      const { game, player, cards } = data;
+      const whosTurn = await getData(game, "game/whosTurn");
 
-    if (whosTurn === player) {
-      const cardsLeftInHand = await removeCardsFromHand(game, player, cards);
+      if (whosTurn === player) {
+        const cardsLeftInHand = await removeCardsFromHand(game, player, cards);
 
-      // Reduce counts of stations
-      await endTurn(game, player, cardsLeftInHand, 0, 1);
-      return "success";
+        // Reduce counts of stations
+        await endTurn(game, player, cardsLeftInHand, 0, 1);
+        return "success";
+      }
+      return "Wrong player";
     }
-    return "Wrong player";
-  }
-);
+  );
 
-export const layTunnel = functions.https.onCall(
-  async (data: { game: string; player: string }, context) => {
+export const layTunnel = functions
+  .region("europe-west2")
+  .https.onCall(async (data: { game: string; player: string }, context) => {
     const { game, player } = data;
     const whosTurn = await getData(game, "game/whosTurn");
 
@@ -561,11 +568,11 @@ export const layTunnel = functions.https.onCall(
       return "success";
     }
     return "Wrong player";
-  }
-);
+  });
 
-export const addGame = functions.https.onCall(
-  async (data: { game: string }, context) => {
+export const addGame = functions
+  .region("europe-west2")
+  .https.onCall(async (data: { game: string }, context) => {
     const { game } = data;
     let games = await getData("", "__games__");
     if (games === null) games = [];
@@ -575,11 +582,11 @@ export const addGame = functions.https.onCall(
       return "Game added";
     }
     return "Games already in list";
-  }
-);
+  });
 
-export const addPlayerToGame = functions.https.onCall(
-  async (data: { game: string; player: string }, context) => {
+export const addPlayerToGame = functions
+  .region("europe-west2")
+  .https.onCall(async (data: { game: string; player: string }, context) => {
     const { game, player } = data;
     let players = await getData(game, "players");
     if (players === null) players = [];
@@ -589,11 +596,11 @@ export const addPlayerToGame = functions.https.onCall(
       return "Player added";
     }
     return "Player already in game";
-  }
-);
+  });
 
-export const takeRouteCards = functions.https.onCall(
-  async (data: { game: string; player: string }, context) => {
+export const takeRouteCards = functions
+  .region("europe-west2")
+  .https.onCall(async (data: { game: string; player: string }, context) => {
     const { game, player } = data;
     const whosTurn = await getData(game, "game/whosTurn");
 
@@ -604,5 +611,4 @@ export const takeRouteCards = functions.https.onCall(
       return "success";
     }
     return "Wrong player";
-  }
-);
+  });
