@@ -7,6 +7,7 @@ export interface PlayerDataItem {
   score: number;
   stations: number;
   cards: number;
+  trains: number;
 }
 
 export interface PlayerData {

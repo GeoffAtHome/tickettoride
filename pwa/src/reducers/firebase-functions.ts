@@ -1,6 +1,8 @@
 import firebase from 'firebase/app';
 import 'firebase/database';
 import 'firebase/functions';
+import { notifyMessage } from '../actions/app';
+import { store } from '../store';
 
 const local = true;
 const databaseURL = local
@@ -105,6 +107,7 @@ export async function takeCardFromPallet(
     card: card,
     index: index,
   }).then(result => {
+    store.dispatch(notifyMessage(result.data));
     console.log(result.data);
   });
 }

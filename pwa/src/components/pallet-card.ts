@@ -90,6 +90,9 @@ export class PalletCard extends PageViewElement {
   private pStations: Array<number> = [];
 
   @internalProperty()
+  private pTrains: Array<number> = [];
+
+  @internalProperty()
   lastPlayer: string = '';
 
   static get styles() {
@@ -117,19 +120,19 @@ export class PalletCard extends PageViewElement {
 
   protected render() {
     return html`
-      <h1>Discard and deck</h1>
+      <h3>Discard and deck</h3>
       <section class="top">
         ${this.pPlayers.map((item, index) => {
           if (this.whosTurn === item)
             return html`<div>
               <b
                 >${item}: ${this.pScores[index]} : H${this.pCards[index]} :
-                S${this.pStations[index]}</b
+                T${this.pTrains[index]}: S${this.pStations[index]}</b
               >
             </div>`;
           return html`<div>
             ${item}: ${this.pScores[index]} : H${this.pCards[index]} :
-            S${this.pStations[index]}
+            T${this.pTrains[index]}: S${this.pStations[index]}
           </div>`;
         })}
       </section>
@@ -142,7 +145,7 @@ export class PalletCard extends PageViewElement {
           .card="${{ name: this.lastCard, count: this.discardCount }}"
         ></card-count>
       </section>
-      <h1>Pallet</h1>
+      <h3>Pallet</h3>
       <section class="top">
         ${this.pallet.map((item, index) => {
           return html` <card-view
@@ -152,13 +155,13 @@ export class PalletCard extends PageViewElement {
           ></card-view>`;
         })}
       </section>
-      <h1>Tunnel cards</h1>
+      <h3>Tunnel cards</h3>
       <section class="top">
         ${this.tunnel.map(item => {
           return html` <card-view .card="${item}"></card-view> `;
         })}
       </section>
-      <h1>Hand</h1>
+      <h3>Hand</h3>
       <section class="top">
         <player-view
           @take-route-cards="${this.takeRouteCards}"
@@ -199,6 +202,9 @@ export class PalletCard extends PageViewElement {
           player => theGame.playerData[player].stations
         );
 
+        this.pTrains = this.pPlayers.map(
+          player => theGame.playerData[player].trains
+        );
         if (this.page === 'pallet' && this.lastPlayer !== this.whosTurn) {
           // Player has changes
           this.lastPlayer = this.whosTurn;

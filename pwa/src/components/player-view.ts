@@ -79,7 +79,14 @@ export class PlayerView extends LitElement {
   routeValid: boolean = false;
 
   static get styles() {
-    return [SharedStyles, css``];
+    return [
+      SharedStyles,
+      css`
+        mwc-button {
+          z-index: 1;
+        }
+      `,
+    ];
   }
 
   protected render() {

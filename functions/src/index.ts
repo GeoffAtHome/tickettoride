@@ -85,7 +85,7 @@ const scoreOnLength = [1, 2, 4, 7, 15, 21];
  */
 function getCardsFromString(list: string) {
   const cards: Array<string> = [];
-  if (list !== undefined) {
+  if (list !== undefined && list !== null) {
     const listArray = [...list];
     listArray.forEach((card) => {
       cards.push(letterToCard[card]);
@@ -102,7 +102,7 @@ function getCardsFromString(list: string) {
  */
 export function getStringFromCards(cards: Array<string>) {
   let list: string = "";
-  if (cards !== undefined) {
+  if (list !== undefined && list !== null) {
     const listArray: Array<string> = [];
     cards.forEach((card) => {
       listArray.push(cardToLetter[card]);
@@ -190,7 +190,7 @@ async function getCard(game: string) {
     deckList = shuffleDeck(discardList);
 
     // Save the empty discard list
-    await setData(game, "discard", []);
+    await setData(game, "discard", "");
 
     // Show that the discard pile is empty
     await setData(game, "game/lastCard", "discard");
@@ -219,19 +219,54 @@ async function endTurn(
   game: string,
   player: string,
   cards: number,
-  points: number,
+  routeLength: number,
   stations: number
 ) {
+  const points = routeLength === 0 ? 0 : scoreOnLength[routeLength - 1];
+
   // Update player data
   const path = "game/playerData/" + player;
   const playerData: PlayerDataItem = await getData(game, path);
   playerData.score += points;
   playerData.stations -= stations;
+  playerData.trains -= routeLength;
   playerData.cards = cards;
-
   await setData(game, path, playerData);
+  // Put tunnel cards, if any, onto the discard pile
+  await tunnelCardsToDiscardPile(game);
   // Move onto next player
   await nextPlayer(game, player);
+}
+
+async function tunnelCardsToDiscardPile(game: string) {
+  const tunnel: Array<string> = getCardsFromString(
+    await getData(game, "game/tunnel")
+  );
+
+  if (tunnel.length !== 0) {
+    // Take the cards and add them to the discard pile
+    addCardsToDiscardPile(game, tunnel);
+
+    // Save empty tunnel
+    await setData(game, "game/tunnel", "");
+  }
+}
+
+async function addCardsToDiscardPile(game: string, cards: Array<string>) {
+  // Take the cards and add them to the discard pile
+  const discard: Array<string> = getCardsFromString(
+    await getData(game, "discard")
+  );
+  const newDiscard = [...discard, ...cards];
+
+  // Set the size of the discard pile
+  await setData(game, "game/discardCount", newDiscard.length);
+
+  // Save the discard pile
+  await setData(game, "discard", getStringFromCards(newDiscard));
+
+  // Mark up the last card
+  await setData(game, "game/lastCard", cards[0]);
 }
 
 async function nextPlayer(game: string, player: string) {
@@ -263,19 +298,8 @@ async function removeCardsFromHand(
   await setData(game, player, getStringFromCards(hand));
 
   // Take the cards and add them to the discard pile
-  const discard: Array<string> = getCardsFromString(
-    await getData(game, "discard")
-  );
-  const newDiscard = [...discard, ...cards];
+  await addCardsToDiscardPile(game, cards);
 
-  // Set the size of the discard pile
-  await setData(game, "game/discardCount", newDiscard.length);
-
-  // Save the discard pile
-  await setData(game, "discard", getStringFromCards(newDiscard));
-
-  // Mark up the last card
-  await setData(game, "game/lastCard", cards[0]);
   return hand.length;
 }
 
@@ -283,7 +307,26 @@ export const newGame = functions.https.onCall(
   async (data: { game: string }, context) => {
     const { game } = data;
 
-    const deck: Array<string> = shuffleDeck(createDeck());
+    let deck: Array<string> = [];
+    let pallet: Array<string> = [];
+
+    for (;;) {
+      deck = shuffleDeck(createDeck());
+
+      // Deal the pallet
+      pallet = [];
+      pallet.push(deck.pop()!);
+      pallet.push(deck.pop()!);
+      pallet.push(deck.pop()!);
+      pallet.push(deck.pop()!);
+      pallet.push(deck.pop()!);
+
+      const locomotives = pallet.filter((card) => {
+        return card === "locomotive";
+      });
+
+      if (locomotives.length < 3) break;
+    }
 
     const players: Array<string> = await getData(game, "players");
 
@@ -292,6 +335,7 @@ export const newGame = functions.https.onCall(
       score: 0,
       stations: 3,
       cards: 5,
+      trains: 45,
     };
 
     players.forEach(async (player) => {
@@ -305,14 +349,6 @@ export const newGame = functions.https.onCall(
       playerData[player] = playerDataItem;
       await setData(game, player, getStringFromCards(hand));
     });
-
-    // Deal the pallet
-    const pallet: Array<string> = [];
-    pallet.push(deck.pop()!);
-    pallet.push(deck.pop()!);
-    pallet.push(deck.pop()!);
-    pallet.push(deck.pop()!);
-    pallet.push(deck.pop()!);
 
     const theGame: Game = {
       deckCount: deck.length,
@@ -346,7 +382,6 @@ export const layRoute = functions.https.onCall(
       const cardsLeftInHand = await removeCardsFromHand(game, player, cards);
 
       // Workout score based on tunnel cards
-      const tunnel = getCardsFromString(await getData(game, "game/tunnel"));
       const cardSet = getHand(cards);
       let primaryCard = "";
       // Get dominate card for cards played
@@ -366,18 +401,17 @@ export const layRoute = functions.https.onCall(
           break;
       }
       let routeLength = cards.length;
+
+      // Workout score based on tunnel cards
+      const tunnel: Array<string> = getCardsFromString(
+        await getData(game, "game/tunnel")
+      );
       tunnel.forEach((element) => {
         if (element == primaryCard) routeLength -= 1;
       });
 
       // End the turn
-      await endTurn(
-        game,
-        player,
-        cardsLeftInHand,
-        scoreOnLength[routeLength - 1],
-        0
-      );
+      await endTurn(game, player, cardsLeftInHand, routeLength, 0);
 
       return "success";
     }
@@ -455,6 +489,28 @@ export const takeCardFromPallet = functions.https.onCall(
       // Find old card in pallet and replace
       pallet[index] = newCard;
 
+      // If the pallet has three locomotives blow the pallet and try again.
+      let locomotives = pallet.filter((card) => {
+        return card === "locomotive";
+      });
+
+      if (locomotives.length >= 3) {
+        do {
+          // Put the pallet on the discard pile and draw five new cards
+          addCardsToDiscardPile(game, pallet);
+          pallet.length = 0;
+
+          pallet.push(await getCard(game));
+          pallet.push(await getCard(game));
+          pallet.push(await getCard(game));
+          pallet.push(await getCard(game));
+          pallet.push(await getCard(game));
+          locomotives = pallet.filter((card) => {
+            return card === "locomotive";
+          });
+        } while (locomotives.length >= 3);
+      }
+
       // Save the pallet
       await setData(game, "game/pallet", getStringFromCards(pallet));
 
@@ -477,10 +533,6 @@ export const layStation = functions.https.onCall(
   ) => {
     const { game, player, cards } = data;
     const whosTurn = await getData(game, "game/whosTurn");
-
-    console.log("The game: " + game);
-    console.log("The player: " + player);
-    console.log("Cards: " + JSON.stringify(cards));
 
     if (whosTurn === player) {
       const cardsLeftInHand = await removeCardsFromHand(game, player, cards);
@@ -546,7 +598,9 @@ export const takeRouteCards = functions.https.onCall(
     const whosTurn = await getData(game, "game/whosTurn");
 
     if (whosTurn === player) {
-      await nextPlayer(game, player);
+      // Get the players hand
+      let hand = await getData(game, player);
+      await endTurn(game, player, hand.length, 0, 0);
       return "success";
     }
     return "Wrong player";
