@@ -98,9 +98,7 @@ export async function takeCardFromPallet(
   card: string,
   index: number
 ) {
-  const takeCardFromPallet = firebase
-    .functions()
-    .httpsCallable('takeCardFromPallet');
+  const takeCardFromPallet = fbFunctions.httpsCallable('takeCardFromPallet');
   takeCardFromPallet({
     game: game,
     player: player,
@@ -113,7 +111,7 @@ export async function takeCardFromPallet(
 }
 
 export async function addGame(game: string) {
-  const addGame = firebase.functions().httpsCallable('addGame');
+  const addGame = fbFunctions.httpsCallable('addGame');
   addGame({
     game: game,
   }).then(result => {
@@ -122,7 +120,7 @@ export async function addGame(game: string) {
 }
 
 export async function addPlayerToGame(game: string, player: string) {
-  const addPlayerToGame = firebase.functions().httpsCallable('addPlayerToGame');
+  const addPlayerToGame = fbFunctions.httpsCallable('addPlayerToGame');
   addPlayerToGame({
     game: game,
     player: player,
@@ -132,7 +130,7 @@ export async function addPlayerToGame(game: string, player: string) {
 }
 
 export async function takeRouteCards(game: string, player: string) {
-  const takeRouteCards = firebase.functions().httpsCallable('takeRouteCards');
+  const takeRouteCards = fbFunctions.httpsCallable('takeRouteCards');
   takeRouteCards({
     game: game,
     player: player,
