@@ -24,6 +24,7 @@ import { CardAndCount, Player } from '../../utils/ticketToRideTypes';
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
 import './card-count';
+import { cardsIcon, routeIcon, stationIcon, tunnelIcon } from './my-icons';
 
 export function findPlayer(player: string, thePlayers: Array<Player>) {
   const thePlayer: Array<Player> = thePlayers.filter(item => {
@@ -106,19 +107,19 @@ export class PlayerView extends LitElement {
             raised
             ?disabled=${this.player !== this.whosTurn}
             @click="${this.takeRouteCards}"
-            >Take route cards</mwc-button
+            >${cardsIcon}</mwc-button
           >
           <mwc-button
             raised
             ?disabled=${!this.routeValid || this.player !== this.whosTurn}
             @click="${this.layTheRoute}"
-            >Lay a route</mwc-button
+            >${routeIcon}</mwc-button
           >
           <mwc-button
             raised
             ?disabled=${!this.routeValid || this.player !== this.whosTurn}
             @click="${this.layTunnel}"
-            >Lay a tunnel</mwc-button
+            >${tunnelIcon}</mwc-button
           >
           <mwc-button
             raised
@@ -126,7 +127,7 @@ export class PlayerView extends LitElement {
             this.player !== this.whosTurn ||
             4 - this.stations !== this.route.length}
             @click="${this.layStation}"
-            >Lay station</mwc-button
+            >${stationIcon}</mwc-button
           >
         </div>
       </section>

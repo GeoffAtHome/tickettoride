@@ -35,9 +35,15 @@ import {
   takeTopCard,
 } from '../reducers/firebase-functions';
 import { Game } from '../../utils/ticketToRideTypes';
-import { RootState, store } from '../store';
+import { store } from '../store';
 import { notifyMessage } from '../actions/app';
 import { getItem } from '../../utils/getItem';
+import {
+  cardsIcon,
+  scoreIcon,
+  stationIcon,
+  trainIcon,
+} from '../components/my-icons';
 
 @customElement('pallet-card')
 export class PalletCard extends PageViewElement {
@@ -126,13 +132,16 @@ export class PalletCard extends PageViewElement {
           if (this.whosTurn === item)
             return html`<div>
               <b
-                >${item}: ${this.pScores[index]} : H${this.pCards[index]} :
-                T${this.pTrains[index]}: S${this.pStations[index]}</b
+                >${item}: ${scoreIcon}${this.pScores[index]}
+                ${cardsIcon}${this.pCards[index]}
+                ${trainIcon}${this.pTrains[index]}
+                ${stationIcon}${this.pStations[index]}</b
               >
             </div>`;
           return html`<div>
-            ${item}: ${this.pScores[index]} : H${this.pCards[index]} :
-            T${this.pTrains[index]}: S${this.pStations[index]}
+            ${item}: ${scoreIcon}${this.pScores[index]}
+            ${cardsIcon}${this.pCards[index]} ${trainIcon}${this.pTrains[index]}
+            ${stationIcon}${this.pStations[index]}
           </div>`;
         })}
       </section>

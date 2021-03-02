@@ -30,7 +30,7 @@ export class WelcomePage extends PageViewElement {
 
   protected render() {
     return html`
-      <h1>Ticket to Ride cards for the game v0.0.2</h1>
+      <h1>Ticket to Ride cards for the game v0.0.3</h1>
       <h3>Background</h3>
       <p>
         This was written to allow 'Ticket to Ride' to be played remotely during
@@ -68,6 +68,7 @@ export class WelcomePage extends PageViewElement {
       <br />
       <h1>Releases</h1>
       <ul>
+        <li>v0.0.3 - Add trains and icons.</li>
         <li>v0.0.2 - Notifications for who's turn it is.</li>
         <li>v0.0.1 - Initial version</li>
       </ul>

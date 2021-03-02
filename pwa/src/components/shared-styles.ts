@@ -14,7 +14,7 @@ export const SharedStyles = css`
   :host {
     display: block;
     box-sizing: border-box;
-    --card-size: max(calc(100vw / 8), 155px);
+    --card-size: max(calc(100vw / 8), 100px);
     --card-text-size: 12px;
   }
 
@@ -35,7 +35,7 @@ export const SharedStyles = css`
   h3 {
     font-size: 12px;
     text-align: center;
-    margin: 2px;
+    margin: 15px;
   }
 
   h2 {
