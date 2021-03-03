@@ -195,7 +195,7 @@ export class PlayerView extends LitElement {
 
   private layTunnel() {
     const event = new CustomEvent('lay-tunnel', {
-      detail: { player: this.player },
+      detail: { player: this.player, cards: this.route },
     });
     this.dispatchEvent(event);
   }

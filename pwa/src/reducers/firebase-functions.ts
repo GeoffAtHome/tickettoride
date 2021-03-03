@@ -85,9 +85,13 @@ export async function layStation(
   });
 }
 
-export async function layTunnel(game: string, player: string) {
+export async function layTunnel(
+  game: string,
+  player: string,
+  cards: Array<string>
+) {
   const layTunnel = fbFunctions.httpsCallable('layTunnel');
-  layTunnel({ game: game, player: player }).then(result => {
+  layTunnel({ game: game, player: player, cards: cards }).then(result => {
     console.log(result.data);
   });
 }

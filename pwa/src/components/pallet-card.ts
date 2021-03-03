@@ -14,12 +14,14 @@ import {
   css,
   property,
   internalProperty,
+  query,
 } from 'lit-element';
 import { getCardsFromString } from './card-deck';
 import { PageViewElement } from './page-view-element';
 
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
+import '@material/mwc-dialog';
 import '@material/mwc-button';
 import './card-count';
 import './card-view';
@@ -34,7 +36,18 @@ import {
   takeRouteCards,
   takeTopCard,
 } from '../reducers/firebase-functions';
-import { Game } from '../../utils/ticketToRideTypes';
+import {
+  Game,
+  LAY_ROUTE,
+  LAY_ROUTE_WITH_TUNNEL,
+  LAY_STATION,
+  LAY_TUNNEL,
+  TAKE_PALLET_CARD_1,
+  TAKE_PALLET_CARD_2,
+  TAKE_ROUTE_CARDS,
+  TAKE_TOP_CARD_1,
+  TAKE_TOP_CARD_2,
+} from '../../utils/ticketToRideTypes';
 import { store } from '../store';
 import { notifyMessage } from '../actions/app';
 import { getItem } from '../../utils/getItem';
@@ -44,9 +57,12 @@ import {
   stationIcon,
   trainIcon,
 } from '../components/my-icons';
+import { Dialog } from '@material/mwc-dialog';
 
 @customElement('pallet-card')
 export class PalletCard extends PageViewElement {
+  @query('#lastPlayer')
+  private dialog!: Dialog;
   @property({ type: Array })
   private pallet: Array<string> = [];
 
@@ -99,26 +115,27 @@ export class PalletCard extends PageViewElement {
   private pTrains: Array<number> = [];
 
   @internalProperty()
-  lastPlayer: string = '';
+  private lastPlayerTurn: string = '';
+
+  @internalProperty()
+  private lastPlayer: string = '';
+
+  @internalProperty()
+  private lastHand: string = '';
+
+  @internalProperty()
+  private lastTurn: string = '';
 
   static get styles() {
     return [
       SharedStyles,
       css`
-        .parent {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
-        }
-
         mwc-button {
           width: 200px;
         }
 
-        .decks {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
+        .player {
+          background-color: 'greenyellow';
         }
       `,
     ];
@@ -126,19 +143,17 @@ export class PalletCard extends PageViewElement {
 
   protected render() {
     return html`
+      <mwc-dialog id="lastPlayer" heading="${this.lastPlayer}">
+        ${this.getPlayedHand()}
+      </mwc-dialog>
       <h3>Discard and deck</h3>
       <section class="top">
         ${this.pPlayers.map((item, index) => {
-          if (this.whosTurn === item)
-            return html`<div>
-              <b
-                >${item}: ${scoreIcon}${this.pScores[index]}
-                ${cardsIcon}${this.pCards[index]}
-                ${trainIcon}${this.pTrains[index]}
-                ${stationIcon}${this.pStations[index]}</b
-              >
-            </div>`;
-          return html`<div>
+          return html`<div
+            style="background-color: ${this.whosTurn === item
+              ? 'greenyellow;'
+              : ''}"
+          >
             ${item}: ${scoreIcon}${this.pScores[index]}
             ${cardsIcon}${this.pCards[index]} ${trainIcon}${this.pTrains[index]}
             ${stationIcon}${this.pStations[index]}
@@ -201,6 +216,9 @@ export class PalletCard extends PageViewElement {
         this.pallet = getCardsFromString(theGame.pallet);
         this.stations = theGame.playerData[this.player].stations;
         this.pPlayers = Object.keys(theGame.playerData);
+        this.lastPlayer = theGame.lastPlayer;
+        this.lastHand = theGame.lastHand;
+        this.lastTurn = theGame.lastTurn;
         this.pCards = this.pPlayers.map(
           player => theGame.playerData[player].cards
         );
@@ -214,14 +232,20 @@ export class PalletCard extends PageViewElement {
         this.pTrains = this.pPlayers.map(
           player => theGame.playerData[player].trains
         );
-        if (this.page === 'pallet' && this.lastPlayer !== this.whosTurn) {
-          // Player has changes
-          this.lastPlayer = this.whosTurn;
+        if (this.page === 'pallet') {
+          this.player !== this.lastPlayer
+            ? this.dialog.show()
+            : this.dialog.close();
 
-          if (this.lastPlayer === this.player) {
-            store.dispatch(notifyMessage('Your turn'));
-          } else {
-            store.dispatch(notifyMessage(this.lastPlayer + "'s turn"));
+          if (this.lastPlayerTurn !== this.whosTurn) {
+            // Player has changes
+            this.lastPlayerTurn = this.whosTurn;
+
+            if (this.lastPlayerTurn === this.player) {
+              store.dispatch(notifyMessage('Your turn'));
+            } else {
+              store.dispatch(notifyMessage(this.lastPlayerTurn + "'s turn"));
+            }
           }
         }
       }
@@ -237,8 +261,9 @@ export class PalletCard extends PageViewElement {
     await takeRouteCards(this.gameName, this.player);
   }
 
-  private async layTunnel() {
-    await layTunnel(this.gameName, this.player);
+  private async layTunnel(event: CustomEvent) {
+    const { cards, player } = event.detail;
+    await layTunnel(this.gameName, player, cards);
   }
 
   private async takeTopCard() {
@@ -259,5 +284,34 @@ export class PalletCard extends PageViewElement {
   private async layRoute(event: CustomEvent) {
     const { cards, player } = event.detail;
     await layRoute(this.gameName, player, cards);
+  }
+
+  private getPlayedHand() {
+    switch (this.lastTurn) {
+      case TAKE_TOP_CARD_1:
+      case TAKE_TOP_CARD_2:
+        return html`${this.lastTurn}<card-view card="front"></card-view>`;
+
+      case TAKE_PALLET_CARD_1:
+      case TAKE_PALLET_CARD_2:
+      case LAY_STATION:
+      case LAY_TUNNEL:
+        return html`${this.lastTurn}<card-view
+            .card=${this.lastHand}
+          ></card-view>`;
+
+      case LAY_ROUTE:
+      case LAY_ROUTE_WITH_TUNNEL:
+        return [...this.lastHand].map((item, index) => {
+          return html`${this.lastTurn}<card-view
+              .index=${index}
+              .card="${item}"
+              @clicked-card="${this.takeCardFromPallet}"
+            ></card-view>`;
+        });
+
+      case TAKE_ROUTE_CARDS:
+        return html`<div>${cardsIcon} Take route cards</div>`;
+    }
   }
 }

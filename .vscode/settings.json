@@ -3,6 +3,8 @@
         "*.yaml": "home-assistant"
     },
     "cSpell.words": [
+        "Covid",
+        "greenyellow",
         "maxlength"
     ]
 }
