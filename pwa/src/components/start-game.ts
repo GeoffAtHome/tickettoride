@@ -136,7 +136,8 @@ export class StartGame extends PageViewElement {
   private listenForThePlayers(game: string) {
     this.dbThePlayers = getFbDb(game + '/players');
     this.dbThePlayers.on('value', snap => {
-      this.players = snap.val();
+      const value = snap.val();
+      if (value !== undefined && value !== null) this.players = value;
     });
   }
 
