@@ -137,7 +137,7 @@ export class StartGame extends PageViewElement {
     this.dbThePlayers = getFbDb(game + '/players');
     this.dbThePlayers.on('value', snap => {
       const value = snap.val();
-      if (value !== undefined && value !== null) this.players = value;
+      if (!(value == null)) this.players = value;
     });
   }
 
@@ -189,7 +189,7 @@ export class StartGame extends PageViewElement {
       await addGame(game);
     }
     const theGame = await getFbData(game);
-    if (theGame === null) {
+    if (theGame == null) {
       // Add game to list
       await addGame(game);
       // Save the player

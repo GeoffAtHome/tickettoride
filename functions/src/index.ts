@@ -76,7 +76,17 @@ const cardToLetter: LetterToCard = {
   locomotive: "l",
 };
 
-const scoreOnLength = [1, 2, 4, 7, 15, 21];
+const scoreOnLength = [
+  0, // 0
+  1, // 1
+  2, // 2
+  4, // 3
+  7, // 4
+  7, // 5 - Not valid
+  15, // 6
+  15, // 7 - Not valid
+  21, // 8
+];
 
 /**
  * Converts a string to an array of cards
@@ -85,7 +95,7 @@ const scoreOnLength = [1, 2, 4, 7, 15, 21];
  */
 function getCardsFromString(list: string) {
   const cards: Array<string> = [];
-  if (list !== undefined && list !== null) {
+  if (!(list == null)) {
     const listArray = [...list];
     listArray.forEach((card) => {
       cards.push(letterToCard[card]);
@@ -102,7 +112,7 @@ function getCardsFromString(list: string) {
  */
 export function getStringFromCards(cards: Array<string>) {
   let list: string = "";
-  if (list !== undefined && list !== null) {
+  if (!(list == null)) {
     const listArray: Array<string> = [];
     cards.forEach((card) => {
       listArray.push(cardToLetter[card]);
@@ -184,6 +194,11 @@ async function setData(game: string, path: string, data: any) {
 async function getCard(game: string) {
   // Read the deck
   let deckList = getCardsFromString(await getData(game, "deck"));
+
+  // Get the card to return
+  const card = deckList.pop();
+
+  // If the deck is now empty - shuffle the cards
   if (deckList.length === 0) {
     // Read the discard list to create new deck
     const discardList = getCardsFromString(await getData(game, "discard"));
@@ -191,12 +206,11 @@ async function getCard(game: string) {
 
     // Save the empty discard list
     await setData(game, "discard", "");
+    await setData(game, "discardCount", 0);
 
     // Show that the discard pile is empty
     await setData(game, "game/lastCard", "discard");
   }
-  // Get the card to return
-  const card = deckList.pop();
 
   // Save the new list
   await setData(game, "deck", getStringFromCards(deckList));
@@ -222,7 +236,7 @@ async function endTurn(
   routeLength: number,
   stations: number
 ) {
-  const points = routeLength === 0 ? 0 : scoreOnLength[routeLength - 1];
+  const points = routeLength === 0 ? 0 : scoreOnLength[routeLength];
 
   // Update player data
   const path = "game/playerData/" + player;
@@ -245,7 +259,7 @@ async function tunnelCardsToDiscardPile(game: string) {
 
   if (tunnel.length !== 0) {
     // Take the cards and add them to the discard pile
-    addCardsToDiscardPile(game, tunnel);
+    await addCardsToDiscardPile(game, tunnel);
 
     // Save empty tunnel
     await setData(game, "game/tunnel", "");
@@ -340,9 +354,8 @@ export const newGame = functions
     };
 
     players.forEach(async (player) => {
-      // Deal the hands
+      // Deal the hands - four cards for each player
       const hand: Array<string> = [];
-      hand.push(deck.pop()!);
       hand.push(deck.pop()!);
       hand.push(deck.pop()!);
       hand.push(deck.pop()!);
@@ -501,7 +514,7 @@ export const takeCardFromPallet = functions
         if (locomotives.length >= 3) {
           do {
             // Put the pallet on the discard pile and draw five new cards
-            addCardsToDiscardPile(game, pallet);
+            await addCardsToDiscardPile(game, pallet);
             pallet.length = 0;
 
             pallet.push(await getCard(game));
@@ -575,7 +588,7 @@ export const addGame = functions
   .https.onCall(async (data: { game: string }, context) => {
     const { game } = data;
     let games = await getData("", "__games__");
-    if (games === null) games = [];
+    if (games == null) games = [];
     if (!games.includes(game)) {
       games.push(game);
       await setData("", "__games__", games);
@@ -589,7 +602,7 @@ export const addPlayerToGame = functions
   .https.onCall(async (data: { game: string; player: string }, context) => {
     const { game, player } = data;
     let players = await getData(game, "players");
-    if (players === null) players = [];
+    if (players == null) players = [];
     if (!players.includes(player)) {
       players.push(player);
       await setData(game, "players", players);

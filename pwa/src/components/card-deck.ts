@@ -31,7 +31,7 @@ const letterToCard: LetterToCard = {
 
 export function getCardsFromString(list: string) {
   const cards: Array<string> = [];
-  if (list !== undefined && list !== null) {
+  if (!(list == null)) {
     const listArray = [...list];
     listArray.forEach(card => {
       cards.push(letterToCard[card]);
