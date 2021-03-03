@@ -53,7 +53,7 @@ export class CardView extends LitElement {
       <mwc-icon-button raised id="card">
         <slot>
           <img
-            src="assets/${this.card}.png"
+            src="assets/${this.card}.webp"
             alt="${this.card}"
             loading="lazy"
           />

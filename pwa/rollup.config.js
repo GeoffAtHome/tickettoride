@@ -2,6 +2,7 @@ import merge from 'deepmerge';
 // use createSpaConfig for bundling a Single Page App
 import { createSpaConfig } from '@open-wc/building-rollup';
 import copy from 'rollup-plugin-copy';
+import { generateSW } from 'rollup-plugin-workbox';
 
 // use createBasicConfig to do regular JS to JS bundling
 // import { createBasicConfig } from '@open-wc/building-rollup';
@@ -48,6 +49,19 @@ export default merge(baseConfig, {
       ],
       // set flatten to false to preserve folder structure
       flatten: false,
+    }),
+    generateSW({
+      swDest: 'dist/sw.js',
+      globDirectory: 'dist/',
+      globPatterns: [
+        'styles/*.css',
+        '**/*/*.svg',
+        '**/*/*.png',
+        '*.js',
+        '*.html',
+        'assets/**',
+        '*.json',
+      ],
     }),
   ],
 });

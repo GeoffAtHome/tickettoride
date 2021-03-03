@@ -146,7 +146,6 @@ export class PalletCard extends PageViewElement {
       <mwc-dialog id="lastPlayer" heading="${this.lastPlayer}">
         ${this.getPlayedHand()}
       </mwc-dialog>
-      <h3>Discard and deck</h3>
       <section class="top">
         ${this.pPlayers.map((item, index) => {
           return html`<div
@@ -169,7 +168,6 @@ export class PalletCard extends PageViewElement {
           .card="${{ name: this.lastCard, count: this.discardCount }}"
         ></card-count>
       </section>
-      <h3>Pallet</h3>
       <section class="top">
         ${this.pallet.map((item, index) => {
           return html` <card-view

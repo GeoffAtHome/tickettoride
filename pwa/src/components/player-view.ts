@@ -65,19 +65,22 @@ export class PlayerView extends LitElement {
   private stations = 0;
 
   @internalProperty()
-  hand: Array<string> = [];
+  private hand: Array<string> = [];
 
   @internalProperty()
-  theHand: Array<CardAndCount> = [];
+  private theHand: Array<CardAndCount> = [];
 
   @internalProperty()
-  route: Array<string> = [];
+  private route: Array<string> = [];
 
   @internalProperty()
-  theRoute: Array<CardAndCount> = [];
+  private theRoute: Array<CardAndCount> = [];
 
   @internalProperty()
-  routeValid: boolean = false;
+  private routeValid: boolean = false;
+
+  @internalProperty()
+  private tunnelLaid: boolean = false;
 
   static get styles() {
     return [
@@ -117,7 +120,9 @@ export class PlayerView extends LitElement {
           >
           <mwc-button
             raised
-            ?disabled=${!this.routeValid || this.player !== this.whosTurn}
+            ?disabled=${!this.routeValid ||
+            this.player !== this.whosTurn ||
+            this.tunnelLaid}
             @click="${this.layTunnel}"
             >${tunnelIcon}</mwc-button
           >
@@ -125,6 +130,7 @@ export class PlayerView extends LitElement {
             raised
             ?disabled=${!this.routeValid ||
             this.player !== this.whosTurn ||
+            this.tunnelLaid ||
             4 - this.stations !== this.route.length}
             @click="${this.layStation}"
             >${stationIcon}</mwc-button
@@ -178,6 +184,7 @@ export class PlayerView extends LitElement {
   }
 
   private layStation() {
+    this.tunnelLaid = false;
     const event = new CustomEvent('lay-station', {
       detail: { player: this.player, cards: this.route },
     });
@@ -187,6 +194,7 @@ export class PlayerView extends LitElement {
   }
 
   private takeRouteCards() {
+    this.tunnelLaid = false;
     const event = new CustomEvent('take-route-cards', {
       detail: { player: this.player },
     });
@@ -194,6 +202,7 @@ export class PlayerView extends LitElement {
   }
 
   private layTunnel() {
+    this.tunnelLaid = true;
     const event = new CustomEvent('lay-tunnel', {
       detail: { player: this.player, cards: this.route },
     });
@@ -201,6 +210,7 @@ export class PlayerView extends LitElement {
   }
 
   private layTheRoute() {
+    this.tunnelLaid = false;
     const event = new CustomEvent('lay-route', {
       detail: { player: this.player, cards: this.route },
     });
