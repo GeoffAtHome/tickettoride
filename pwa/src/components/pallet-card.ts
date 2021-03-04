@@ -159,7 +159,7 @@ export class PalletCard extends PageViewElement {
         id="lastPlayer"
         hideActions
         heading="${this.lastPlayer} - ${this.lastTurn}"
-        @clicked-card="${this.closeDialog}"
+        @click="${this.closeDialog}"
       >
         ${this.getPlayedHand()}
       </mwc-dialog>
@@ -306,7 +306,11 @@ export class PalletCard extends PageViewElement {
     switch (this.lastTurn) {
       case TAKE_TOP_CARD_1:
       case TAKE_TOP_CARD_2:
-        return html`<card-view class="dialog" card="front"></card-view>`;
+        return html`<card-view
+          class="dialog"
+          card="front"
+          @clicked-card="${this.closeDialog}"
+        ></card-view>`;
 
       case TAKE_PALLET_CARD_1:
       case TAKE_PALLET_CARD_2:
@@ -315,6 +319,7 @@ export class PalletCard extends PageViewElement {
         return html`<card-view
           class="dialog"
           .card=${this.lastHand}
+          @clicked-card="${this.closeDialog}"
         ></card-view>`;
 
       case LAY_ROUTE:
@@ -325,6 +330,7 @@ export class PalletCard extends PageViewElement {
             return html` <card-count
               class="dialog"
               .card="${item}"
+              @clicked-card="${this.closeDialog}"
             ></card-count>`;
           });
 
