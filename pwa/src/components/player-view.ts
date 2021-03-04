@@ -38,7 +38,7 @@ interface SortOrder {
   [index: string]: number;
 }
 
-const sortOrder: SortOrder = {
+export const sortOrder: SortOrder = {
   locomotive: 0,
   red: 1,
   orange: 2,

@@ -16,7 +16,7 @@ import {
   internalProperty,
   query,
 } from 'lit-element';
-import { getCardsFromString } from './card-deck';
+import { getCardsFromString, getHand } from './card-deck';
 import { PageViewElement } from './page-view-element';
 
 // These are the shared styles needed by this element.
@@ -58,11 +58,13 @@ import {
   trainIcon,
 } from '../components/my-icons';
 import { Dialog } from '@material/mwc-dialog';
+import { sortOrder } from './player-view';
 
 @customElement('pallet-card')
 export class PalletCard extends PageViewElement {
   @query('#lastPlayer')
   private dialog!: Dialog;
+
   @property({ type: Array })
   private pallet: Array<string> = [];
 
@@ -137,13 +139,28 @@ export class PalletCard extends PageViewElement {
         .player {
           background-color: 'greenyellow';
         }
+
+        .dialog {
+          height: var(--card-size);
+        }
+
+        .sec-text {
+          text-align: left;
+          padding: 10px;
+          margin: 0;
+        }
       `,
     ];
   }
 
   protected render() {
     return html`
-      <mwc-dialog id="lastPlayer" heading="${this.lastPlayer}">
+      <mwc-dialog
+        id="lastPlayer"
+        hideActions
+        heading="${this.lastPlayer} - ${this.lastTurn}"
+        @clicked-card="${this.closeDialog}"
+      >
         ${this.getPlayedHand()}
       </mwc-dialog>
       <section class="top">
@@ -177,13 +194,13 @@ export class PalletCard extends PageViewElement {
           ></card-view>`;
         })}
       </section>
-      <h3>Tunnel cards</h3>
+      <div class="sec-text">Tunnel cards</div>
       <section class="top">
         ${this.tunnel.map(item => {
           return html` <card-view .card="${item}"></card-view> `;
         })}
       </section>
-      <h3>Hand</h3>
+      <div class="sec-text">Hand</div>
       <section class="top">
         <player-view
           @take-route-cards="${this.takeRouteCards}"
@@ -230,20 +247,17 @@ export class PalletCard extends PageViewElement {
         this.pTrains = this.pPlayers.map(
           player => theGame.playerData[player].trains
         );
-        if (this.page === 'pallet') {
-          this.player !== this.lastPlayer
-            ? this.dialog.show()
-            : this.dialog.close();
 
-          if (this.lastPlayerTurn !== this.whosTurn) {
-            // Player has changes
-            this.lastPlayerTurn = this.whosTurn;
+        if (this.page === 'pallet') this.dialog.show();
 
-            if (this.lastPlayerTurn === this.player) {
-              store.dispatch(notifyMessage('Your turn'));
-            } else {
-              store.dispatch(notifyMessage(this.lastPlayerTurn + "'s turn"));
-            }
+        if (this.lastPlayerTurn !== this.whosTurn) {
+          // Player has changes
+          this.lastPlayerTurn = this.whosTurn;
+
+          if (this.lastPlayerTurn === this.player) {
+            store.dispatch(notifyMessage('Your turn'));
+          } else {
+            store.dispatch(notifyMessage(this.lastPlayerTurn + "'s turn"));
           }
         }
       }
@@ -253,6 +267,10 @@ export class PalletCard extends PageViewElement {
       const hand = snap.val();
       this.hand = getCardsFromString(hand);
     });
+  }
+
+  private closeDialog() {
+    this.dialog.close();
   }
 
   private async takeRouteCards() {
@@ -288,28 +306,30 @@ export class PalletCard extends PageViewElement {
     switch (this.lastTurn) {
       case TAKE_TOP_CARD_1:
       case TAKE_TOP_CARD_2:
-        return html`${this.lastTurn}<card-view card="front"></card-view>`;
+        return html`<card-view class="dialog" card="front"></card-view>`;
 
       case TAKE_PALLET_CARD_1:
       case TAKE_PALLET_CARD_2:
       case LAY_STATION:
       case LAY_TUNNEL:
-        return html`${this.lastTurn}<card-view
-            .card=${this.lastHand}
-          ></card-view>`;
+        return html`<card-view
+          class="dialog"
+          .card=${this.lastHand}
+        ></card-view>`;
 
       case LAY_ROUTE:
       case LAY_ROUTE_WITH_TUNNEL:
-        return [...this.lastHand].map((item, index) => {
-          return html`${this.lastTurn}<card-view
-              .index=${index}
+        return getHand([...this.lastHand])
+          .sort((a, b) => sortOrder[a.name] - sortOrder[b.name])
+          .map(item => {
+            return html` <card-count
+              class="dialog"
               .card="${item}"
-              @clicked-card="${this.takeCardFromPallet}"
-            ></card-view>`;
-        });
+            ></card-count>`;
+          });
 
       case TAKE_ROUTE_CARDS:
-        return html`<div>${cardsIcon} Take route cards</div>`;
+        return html`<div>${cardsIcon}</div>`;
     }
   }
 }
