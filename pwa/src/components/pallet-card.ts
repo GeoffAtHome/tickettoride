@@ -248,7 +248,7 @@ export class PalletCard extends PageViewElement {
           player => theGame.playerData[player].trains
         );
 
-        if (this.page === 'pallet') this.dialog.show();
+        if (this.page === 'pallet' && this.lastTurn !== '') this.dialog.show();
 
         if (this.lastPlayerTurn !== this.whosTurn) {
           // Player has changes

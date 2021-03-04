@@ -1,4 +1,5 @@
 import { LetterToCard } from '../../utils/ticketToRideTypes';
+import { OPEN_SNACKBAR } from '../actions/app';
 
 export interface CardAndCount {
   name: string;
@@ -63,9 +64,16 @@ export function shuffleDeck(deck: Array<string>) {
   return shuffledDeck;
 }
 
-export function validateRoute(route: Array<CardAndCount>) {
+const validRouteLengths = [1, 2, 3, 4, 6, 8];
+
+export function validateRoute(route: Array<CardAndCount>, tunnelLaid: boolean) {
   // A route is valid when all the cards are the same colour. Locomotives are wild
   const set = new Set(route);
+  const routeLength = route.reduce((acc: number, obj: CardAndCount): number => {
+    return acc + obj.count;
+  }, 0);
+
+  if (!tunnelLaid && !validRouteLengths.includes(routeLength)) return false;
   if (set.size === 1) return true;
   if (set.size === 2) {
     // Must include a locomotive

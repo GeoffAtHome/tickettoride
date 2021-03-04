@@ -161,7 +161,7 @@ export class PlayerView extends LitElement {
     this.route.push(this.hand.splice(cardIndex, 1)[0]);
     this.theHand = getHand(this.hand);
     this.theRoute = getHand(this.route);
-    this.routeValid = validateRoute(this.theRoute);
+    this.routeValid = validateRoute(this.theRoute, this.tunnelLaid);
   }
 
   private routeClicked(event: CustomEvent) {
@@ -174,7 +174,7 @@ export class PlayerView extends LitElement {
     this.hand.push(this.route.splice(cardIndex, 1)[0]);
     this.theHand = getHand(this.hand);
     this.theRoute = getHand(this.route);
-    this.routeValid = validateRoute(this.theRoute);
+    this.routeValid = validateRoute(this.theRoute, this.tunnelLaid);
   }
 
   updated(changedProperties: PropertyValues): void {

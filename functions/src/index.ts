@@ -426,37 +426,36 @@ export const layRoute = functions
       const { game, player, cards } = data;
       const whosTurn = await getData(game, "game/whosTurn");
 
-      if (whosTurn === player) {
-        const cardsLeftInHand = await removeCardsFromHand(game, player, cards);
+      if (whosTurn !== player) return `${whosTurn}'s turn.`;
 
-        // Workout score based on tunnel cards
-        const primaryCard = getPrimaryCard(cards);
-        let routeLength = cards.length;
+      const cardsLeftInHand = await removeCardsFromHand(game, player, cards);
 
-        // Workout score based on tunnel cards
-        const tunnel: Array<string> = getCardsFromString(
-          await getData(game, "game/tunnel")
-        );
+      // Workout score based on tunnel cards
+      const primaryCard = getPrimaryCard(cards);
+      let routeLength = cards.length;
 
-        // Set up the last turn
-        await setData(game, "game/lastPlayer", player);
-        await setData(
-          game,
-          "game/lastTurn",
-          tunnel.length === 0 ? LAY_ROUTE : LAY_ROUTE_WITH_TUNNEL
-        );
-        await setData(game, "game/lastHand", cards);
+      // Workout score based on tunnel cards
+      const tunnel: Array<string> = getCardsFromString(
+        await getData(game, "game/tunnel")
+      );
 
-        tunnel.forEach((element) => {
-          if (element == primaryCard) routeLength -= 1;
-        });
+      // Set up the last turn
+      await setData(game, "game/lastPlayer", player);
+      await setData(
+        game,
+        "game/lastTurn",
+        tunnel.length === 0 ? LAY_ROUTE : LAY_ROUTE_WITH_TUNNEL
+      );
+      await setData(game, "game/lastHand", cards);
 
-        // End the turn
-        await endTurn(game, player, cardsLeftInHand, routeLength, 0);
+      tunnel.forEach((element) => {
+        if (element == primaryCard) routeLength -= 1;
+      });
 
-        return "success";
-      }
-      return "Wrong player";
+      // End the turn
+      await endTurn(game, player, cardsLeftInHand, routeLength, 0);
+
+      return "Route laid";
     }
   );
 
@@ -466,40 +465,39 @@ export const takeTopCard = functions
     const { game, player } = data;
     const whosTurn = await getData(game, "game/whosTurn");
 
-    if (whosTurn === player) {
-      // Take top card and put in hand
-      const newCard = await getCard(game);
-      const firstCard = await getData(game, "game/firstCard");
+    if (whosTurn !== player) return `${whosTurn}'s turn.`;
 
-      // Set up the last turn
-      await setData(game, "game/lastPlayer", player);
-      await setData(
-        game,
-        "game/lastTurn",
-        firstCard ? TAKE_TOP_CARD_1 : TAKE_TOP_CARD_2
-      );
-      await setData(game, "game/lastHand", firstCard ? "1st card" : "2nd card");
+    // Take top card and put in hand
+    const newCard = await getCard(game);
+    const firstCard = await getData(game, "game/firstCard");
 
-      const cardLetter = cardToLetter[newCard];
+    // Set up the last turn
+    await setData(game, "game/lastPlayer", player);
+    await setData(
+      game,
+      "game/lastTurn",
+      firstCard ? TAKE_TOP_CARD_1 : TAKE_TOP_CARD_2
+    );
+    await setData(game, "game/lastHand", firstCard ? "1st card" : "2nd card");
 
-      // Get the players hand
-      let hand = await getData(game, player);
+    const cardLetter = cardToLetter[newCard];
 
-      // Add card to hand
-      hand += cardLetter;
+    // Get the players hand
+    let hand = await getData(game, player);
 
-      // Save the hand
-      await setData(game, player, hand);
+    // Add card to hand
+    hand += cardLetter;
 
-      // If this is the second card the turn ends
-      if (!firstCard) {
-        await endTurn(game, player, hand.length, 0, 0);
-      } else {
-        await setData(game, "game/firstCard", false);
-      }
-      return "success";
+    // Save the hand
+    await setData(game, player, hand);
+
+    // If this is the second card the turn ends
+    if (!firstCard) {
+      await endTurn(game, player, hand.length, 0, 0);
+    } else {
+      await setData(game, "game/firstCard", false);
     }
-    return "Wrong player";
+    return "Top card taken";
   });
 
 export const takeCardFromPallet = functions
@@ -512,79 +510,78 @@ export const takeCardFromPallet = functions
       const { game, player, card, index } = data;
       const whosTurn = await getData(game, "game/whosTurn");
 
-      if (whosTurn === player) {
-        // Need to check if first or second cards
-        const firstCard = await getData(game, "game/firstCard");
+      if (whosTurn !== player) return `${whosTurn}'s turn.`;
 
-        // Get the card being played
-        const cardLetter = cardToLetter[card];
+      // Need to check if first or second cards
+      const firstCard = await getData(game, "game/firstCard");
 
-        // Set up the last turn
-        await setData(game, "game/lastPlayer", player);
-        await setData(
-          game,
-          "game/lastTurn",
-          firstCard ? TAKE_PALLET_CARD_1 : TAKE_PALLET_CARD_2
-        );
-        await setData(game, "game/lastHand", card);
+      // Get the card being played
+      const cardLetter = cardToLetter[card];
 
-        // You cannot draw a locomotive if this is your second card
-        if (card === "locomotive" && firstCard === false) {
-          return "You can't take a locomotive";
-        }
-        // Place the card into players hand
-        // Get the players hand
-        let hand: string = await getData(game, player);
+      // Set up the last turn
+      await setData(game, "game/lastPlayer", player);
+      await setData(
+        game,
+        "game/lastTurn",
+        firstCard ? TAKE_PALLET_CARD_1 : TAKE_PALLET_CARD_2
+      );
+      await setData(game, "game/lastHand", card);
 
-        // Add card to hand
-        hand += cardLetter;
-
-        // Save the hand
-        await setData(game, player, hand);
-
-        const pallet: Array<string> = getCardsFromString(
-          await getData(game, "game/pallet")
-        );
-        // Take card from deck and replace in pallet
-        const newCard = await getCard(game);
-
-        // Find old card in pallet and replace
-        pallet[index] = newCard;
-
-        // If the pallet has three locomotives blow the pallet and try again.
-        let locomotives = pallet.filter((card) => {
-          return card === "locomotive";
-        });
-
-        if (locomotives.length >= 3) {
-          do {
-            // Put the pallet on the discard pile and draw five new cards
-            await addCardsToDiscardPile(game, pallet);
-            pallet.length = 0;
-
-            pallet.push(await getCard(game));
-            pallet.push(await getCard(game));
-            pallet.push(await getCard(game));
-            pallet.push(await getCard(game));
-            pallet.push(await getCard(game));
-            locomotives = pallet.filter((card) => {
-              return card === "locomotive";
-            });
-          } while (locomotives.length >= 3);
-        }
-
-        // Save the pallet
-        await setData(game, "game/pallet", getStringFromCards(pallet));
-
-        // If the card is a locomotive or is the second card the turn ends
-        if (card === "locomotive" || !firstCard) {
-          await endTurn(game, player, hand.length, 0, 0);
-        } else {
-          await setData(game, "game/firstCard", false);
-        }
-        return "success";
+      // You cannot draw a locomotive if this is your second card
+      if (card === "locomotive" && firstCard === false) {
+        return "You can't take a locomotive";
       }
-      return "Wrong player";
+      // Place the card into players hand
+      // Get the players hand
+      let hand: string = await getData(game, player);
+
+      // Add card to hand
+      hand += cardLetter;
+
+      // Save the hand
+      await setData(game, player, hand);
+
+      const pallet: Array<string> = getCardsFromString(
+        await getData(game, "game/pallet")
+      );
+      // Take card from deck and replace in pallet
+      const newCard = await getCard(game);
+
+      // Find old card in pallet and replace
+      pallet[index] = newCard;
+
+      // If the pallet has three locomotives blow the pallet and try again.
+      let locomotives = pallet.filter((card) => {
+        return card === "locomotive";
+      });
+
+      if (locomotives.length >= 3) {
+        do {
+          // Put the pallet on the discard pile and draw five new cards
+          await addCardsToDiscardPile(game, pallet);
+          pallet.length = 0;
+
+          pallet.push(await getCard(game));
+          pallet.push(await getCard(game));
+          pallet.push(await getCard(game));
+          pallet.push(await getCard(game));
+          pallet.push(await getCard(game));
+          locomotives = pallet.filter((card) => {
+            return card === "locomotive";
+          });
+        } while (locomotives.length >= 3);
+      }
+
+      // Save the pallet
+      await setData(game, "game/pallet", getStringFromCards(pallet));
+
+      // If the card is a locomotive or is the second card the turn ends
+      if (card === "locomotive" || !firstCard) {
+        await endTurn(game, player, hand.length, 0, 0);
+      } else {
+        await setData(game, "game/firstCard", false);
+      }
+      return "Pallet card taken";
     }
   );
 
@@ -598,19 +595,18 @@ export const layStation = functions
       const { game, player, cards } = data;
       const whosTurn = await getData(game, "game/whosTurn");
 
-      if (whosTurn === player) {
-        // Set up the last turn
-        await setData(game, "game/lastPlayer", player);
-        await setData(game, "game/lastTurn", LAY_STATION);
-        await setData(game, "game/lastHand", cards);
+      if (whosTurn !== player) return `${whosTurn}'s turn.`;
 
-        const cardsLeftInHand = await removeCardsFromHand(game, player, cards);
+      // Set up the last turn
+      await setData(game, "game/lastPlayer", player);
+      await setData(game, "game/lastTurn", LAY_STATION);
+      await setData(game, "game/lastHand", cards);
 
-        // Reduce counts of stations
-        await endTurn(game, player, cardsLeftInHand, 0, 1);
-        return "success";
-      }
-      return "Wrong player";
+      const cardsLeftInHand = await removeCardsFromHand(game, player, cards);
+
+      // Reduce counts of stations
+      await endTurn(game, player, cardsLeftInHand, 0, 1);
+      return "Station laid";
     }
   );
 
@@ -624,26 +620,25 @@ export const layTunnel = functions
       const { game, player, cards } = data;
       const whosTurn = await getData(game, "game/whosTurn");
 
-      if (whosTurn === player) {
-        const primaryCard = getPrimaryCard(cards);
-        console.log("Primary card: " + primaryCard);
-        console.log("Cards:" + JSON.stringify(cards));
+      if (whosTurn !== player) return `${whosTurn}'s turn.`;
 
-        // Set up the last turn
-        await setData(game, "game/lastPlayer", player);
-        await setData(game, "game/lastTurn", LAY_TUNNEL);
-        await setData(game, "game/lastHand", primaryCard);
+      const primaryCard = getPrimaryCard(cards);
+      console.log("Primary card: " + primaryCard);
+      console.log("Cards:" + JSON.stringify(cards));
 
-        // Take three cards and update tunnel
-        const tunnel = [];
-        tunnel.push(await getCard(game));
-        tunnel.push(await getCard(game));
-        tunnel.push(await getCard(game));
-        // Save the hand
-        await setData(game, "game/tunnel", getStringFromCards(tunnel));
-        return "success";
-      }
-      return "Wrong player";
+      // Set up the last turn
+      await setData(game, "game/lastPlayer", player);
+      await setData(game, "game/lastTurn", LAY_TUNNEL);
+      await setData(game, "game/lastHand", primaryCard);
+
+      // Take three cards and update tunnel
+      const tunnel = [];
+      tunnel.push(await getCard(game));
+      tunnel.push(await getCard(game));
+      tunnel.push(await getCard(game));
+      // Save the hand
+      await setData(game, "game/tunnel", getStringFromCards(tunnel));
+      return "Tunnel cards selected";
     }
   );
 
@@ -681,16 +676,14 @@ export const takeRouteCards = functions
     const { game, player } = data;
     const whosTurn = await getData(game, "game/whosTurn");
 
-    if (whosTurn === player) {
-      // Set up the last turn
-      await setData(game, "game/lastPlayer", player);
-      await setData(game, "game/lastTurn", TAKE_ROUTE_CARDS);
-      await setData(game, "game/lastHand", "");
+    if (whosTurn !== player) return `${whosTurn}'s turn.`;
+    // Set up the last turn
+    await setData(game, "game/lastPlayer", player);
+    await setData(game, "game/lastTurn", TAKE_ROUTE_CARDS);
+    await setData(game, "game/lastHand", "");
 
-      // Get the players hand
-      let hand = await getData(game, player);
-      await endTurn(game, player, hand.length, 0, 0);
-      return "success";
-    }
-    return "Wrong player";
+    // Get the players hand
+    let hand = await getData(game, player);
+    await endTurn(game, player, hand.length, 0, 0);
+    return "Route cards taken";
   });
