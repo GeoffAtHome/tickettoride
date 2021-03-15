@@ -105,21 +105,23 @@ export class StartGame extends PageViewElement {
 
       <div class="top">
         <div>
-          <mwc-button raised @click="${this.preStartGame}"
-            >Add player</mwc-button
-          >
+          <mwc-button
+            raised
+            @click="${this.preStartGame}"
+            label="Add player"
+          ></mwc-button>
           <mwc-button
             raised
             @click="${this.startGame}"
             ?disabled=${this.players.length < 2}
-            >Start game</mwc-button
-          >
+            label="Start game"
+          ></mwc-button>
           <mwc-button
             raised
             @click=${this.goToGame}
             ?disabled=${this.players.length < 2}
-            >Go to the game</mwc-button
-          >
+            label="Go to the game"
+          ></mwc-button>
         </div>
       </div>
     `;

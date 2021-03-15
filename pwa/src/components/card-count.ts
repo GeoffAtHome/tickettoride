@@ -20,10 +20,10 @@ import {
 import '@material/mwc-icon-button';
 // eslint-disable-next-line import/no-duplicates
 import { IconButton } from '@material/mwc-icon-button';
-import { CardAndCount } from './card-deck';
 
 // These are the shared styles needed by this element.
 import { SharedStyles } from './shared-styles';
+import { CardAndCount } from '../../utils/ticketToRideTypes';
 
 @customElement('card-count')
 export class CardCount extends LitElement {

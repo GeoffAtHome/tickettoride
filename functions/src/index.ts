@@ -2,12 +2,15 @@ import functions = require("firebase-functions");
 import admin = require("firebase-admin");
 import {
   CardAndCount,
+  CardToLetter,
   Game,
   LAY_ROUTE,
   LAY_ROUTE_WITH_TUNNEL,
   LAY_STATION,
   LAY_TUNNEL,
   LetterToCard,
+  LOCOMOTIVE,
+  Pack,
   PlayerData,
   PlayerDataItem,
   TAKE_PALLET_CARD_1,
@@ -24,7 +27,7 @@ admin.initializeApp(functions.config().firebase);
  */
 function createDeck() {
   const deck: Array<string> = [];
-  for (const cardType of pack) {
+  for (const cardType of Pack) {
     const card: string = cardType.name;
     let { count } = cardType;
     while (count) {
@@ -49,42 +52,6 @@ function shuffleDeck(deck: Array<string>) {
   return shuffledDeck;
 }
 
-const pack: Array<CardAndCount> = [
-  { name: "black", count: 12 },
-  { name: "blue", count: 12 },
-  { name: "green", count: 12 },
-  { name: "orange", count: 12 },
-  { name: "pink", count: 12 },
-  { name: "red", count: 12 },
-  { name: "white", count: 12 },
-  { name: "yellow", count: 12 },
-  { name: "locomotive", count: 14 },
-];
-
-const letterToCard: LetterToCard = {
-  k: "black",
-  b: "blue",
-  g: "green",
-  o: "orange",
-  p: "pink",
-  r: "red",
-  w: "white",
-  y: "yellow",
-  l: "locomotive",
-};
-
-const cardToLetter: LetterToCard = {
-  black: "k",
-  blue: "b",
-  green: "g",
-  orange: "o",
-  pink: "p",
-  red: "r",
-  white: "w",
-  yellow: "y",
-  locomotive: "l",
-};
-
 const scoreOnLength = [
   0, // 0
   1, // 1
@@ -107,7 +74,7 @@ function getCardsFromString(list: string) {
   if (!(list == null)) {
     const listArray = [...list];
     listArray.forEach((card) => {
-      cards.push(letterToCard[card]);
+      cards.push(LetterToCard[card]);
     });
   }
 
@@ -124,7 +91,7 @@ export function getStringFromCards(cards: Array<string>) {
   if (!(list == null)) {
     const listArray: Array<string> = [];
     cards.forEach((card) => {
-      listArray.push(cardToLetter[card]);
+      listArray.push(CardToLetter[card]);
     });
     list = listArray.join("");
   }
@@ -242,7 +209,7 @@ function getPrimaryCard(cards: Array<string>) {
       break;
     case 2:
       primaryCard =
-        cardSet[0].name === "locomotive" ? cardSet[1].name : cardSet[0].name;
+        cardSet[0].name === LOCOMOTIVE ? cardSet[1].name : cardSet[0].name;
       break;
     default:
       console.log("Error in hand");
@@ -367,7 +334,7 @@ export const newGame = functions
       pallet.push(deck.pop()!);
 
       const locomotives = pallet.filter((card) => {
-        return card === "locomotive";
+        return card === LOCOMOTIVE;
       });
 
       if (locomotives.length < 3) break;
@@ -449,7 +416,7 @@ export const layRoute = functions
       await setData(game, "game/lastHand", cards);
 
       tunnel.forEach((element) => {
-        if (element == primaryCard) routeLength -= 1;
+        if (element === LOCOMOTIVE || element === primaryCard) routeLength -= 1;
       });
 
       // End the turn
@@ -480,7 +447,7 @@ export const takeTopCard = functions
     );
     await setData(game, "game/lastHand", firstCard ? "1st card" : "2nd card");
 
-    const cardLetter = cardToLetter[newCard];
+    const cardLetter = CardToLetter[newCard];
 
     // Get the players hand
     let hand = await getData(game, player);
@@ -516,7 +483,7 @@ export const takeCardFromPallet = functions
       const firstCard = await getData(game, "game/firstCard");
 
       // Get the card being played
-      const cardLetter = cardToLetter[card];
+      const cardLetter = CardToLetter[card];
 
       // Set up the last turn
       await setData(game, "game/lastPlayer", player);
@@ -527,8 +494,8 @@ export const takeCardFromPallet = functions
       );
       await setData(game, "game/lastHand", card);
 
-      // You cannot draw a locomotive if this is your second card
-      if (card === "locomotive" && firstCard === false) {
+      // You cannot draw a locomotive as your second card
+      if (card === LOCOMOTIVE && firstCard === false) {
         return "You can't take a locomotive";
       }
       // Place the card into players hand
@@ -552,7 +519,7 @@ export const takeCardFromPallet = functions
 
       // If the pallet has three locomotives blow the pallet and try again.
       let locomotives = pallet.filter((card) => {
-        return card === "locomotive";
+        return card === LOCOMOTIVE;
       });
 
       if (locomotives.length >= 3) {
@@ -567,7 +534,7 @@ export const takeCardFromPallet = functions
           pallet.push(await getCard(game));
           pallet.push(await getCard(game));
           locomotives = pallet.filter((card) => {
-            return card === "locomotive";
+            return card === LOCOMOTIVE;
           });
         } while (locomotives.length >= 3);
       }
@@ -576,7 +543,7 @@ export const takeCardFromPallet = functions
       await setData(game, "game/pallet", getStringFromCards(pallet));
 
       // If the card is a locomotive or is the second card the turn ends
-      if (card === "locomotive" || !firstCard) {
+      if (card === LOCOMOTIVE || !firstCard) {
         await endTurn(game, player, hand.length, 0, 0);
       } else {
         await setData(game, "game/firstCard", false);

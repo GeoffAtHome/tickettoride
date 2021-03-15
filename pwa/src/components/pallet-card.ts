@@ -16,7 +16,6 @@ import {
   internalProperty,
   query,
 } from 'lit-element';
-import { getCardsFromString, getHand } from './card-deck';
 import { PageViewElement } from './page-view-element';
 
 // These are the shared styles needed by this element.
@@ -38,6 +37,7 @@ import {
 } from '../reducers/firebase-functions';
 import {
   Game,
+  getCardsFromString,
   LAY_ROUTE,
   LAY_ROUTE_WITH_TUNNEL,
   LAY_STATION,
@@ -59,6 +59,7 @@ import {
 } from '../components/my-icons';
 import { Dialog } from '@material/mwc-dialog';
 import { sortOrder } from './player-view';
+import { getHand } from './card-deck';
 
 @customElement('pallet-card')
 export class PalletCard extends PageViewElement {
