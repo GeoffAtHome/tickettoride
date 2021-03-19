@@ -129,6 +129,15 @@ export class PalletCard extends PageViewElement {
   @internalProperty()
   private lastTurn: string = '';
 
+  @internalProperty()
+  private tunnelLaid: boolean = false;
+
+  @internalProperty()
+  private from: string = '';
+
+  @internalProperty()
+  private to: string = '';
+
   static get styles() {
     return [
       SharedStyles,
@@ -210,8 +219,10 @@ export class PalletCard extends PageViewElement {
           @lay-station="${this.layStation}"
           .hand="${this.hand}"
           .player="${this.player}"
+          .tunnel="${this.tunnel}"
           .whosTurn="${this.whosTurn}"
           .stations="${this.stations}"
+          .tunnelLaid="${this.tunnelLaid}"
         ></player-view>
       </section>
     `;
@@ -229,12 +240,15 @@ export class PalletCard extends PageViewElement {
         this.lastCard = theGame.lastCard;
         this.whosTurn = theGame.whosTurn;
         this.tunnel = getCardsFromString(theGame.tunnel);
+        this.tunnelLaid = this.tunnel.length !== 0;
         this.pallet = getCardsFromString(theGame.pallet);
         this.stations = theGame.playerData[this.player].stations;
         this.pPlayers = Object.keys(theGame.playerData);
         this.lastPlayer = theGame.lastPlayer;
         this.lastHand = theGame.lastHand;
         this.lastTurn = theGame.lastTurn;
+        this.from = theGame.from;
+        this.to = theGame.to;
         this.pCards = this.pPlayers.map(
           player => theGame.playerData[player].cards
         );
@@ -299,8 +313,8 @@ export class PalletCard extends PageViewElement {
   }
 
   private async layRoute(event: CustomEvent) {
-    const { cards, player } = event.detail;
-    await layRoute(this.gameName, player, cards);
+    const { cards, player, from, to } = event.detail;
+    await layRoute(this.gameName, player, cards, from, to);
   }
 
   private getPlayedHand() {
@@ -328,11 +342,12 @@ export class PalletCard extends PageViewElement {
         return getHand([...this.lastHand])
           .sort((a, b) => sortOrder[a.name] - sortOrder[b.name])
           .map(item => {
-            return html` <card-count
-              class="dialog"
-              .card="${item}"
-              @clicked-card="${this.closeDialog}"
-            ></card-count>`;
+            return html`${this.from} to ${this.to}
+              <card-count
+                class="dialog"
+                .card="${item}"
+                @clicked-card="${this.closeDialog}"
+              ></card-count>`;
           });
 
       case TAKE_ROUTE_CARDS:

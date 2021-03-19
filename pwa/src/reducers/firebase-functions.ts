@@ -4,7 +4,7 @@ import 'firebase/functions';
 import { notifyMessage } from '../actions/app';
 import { store } from '../store';
 
-const local = true;
+const local = false;
 const databaseURL = local
   ? 'http://localhost:9010/?ns=ticket-to-ride-game-default-rtdb'
   : 'https://ticket-to-ride-game-default-rtdb.europe-west1.firebasedatabase.app';
@@ -59,10 +59,18 @@ export async function newGame(game: string) {
 export async function layRoute(
   game: string,
   player: string,
-  cards: Array<string>
+  cards: Array<string>,
+  from: string,
+  to: string
 ) {
   const layRoute = fbFunctions.httpsCallable('layRoute');
-  layRoute({ game: game, player: player, cards: cards }).then(result => {
+  layRoute({
+    game: game,
+    player: player,
+    cards: cards,
+    from: from,
+    to: to,
+  }).then(result => {
     console.log(result.data);
   });
 }

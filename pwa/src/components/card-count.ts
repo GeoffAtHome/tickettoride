@@ -33,6 +33,9 @@ export class CardCount extends LitElement {
   @property({ type: Object })
   private card!: CardAndCount;
 
+  @property({ type: Number })
+  private count = 0;
+
   static get styles() {
     return [
       SharedStyles,
@@ -41,6 +44,10 @@ export class CardCount extends LitElement {
           display: block;
           width: var(--card-size);
           height: calc(0.8 * var(--card-size));
+        }
+
+        :host[count='0'] {
+          display: none;
         }
         img {
           width: 100%;

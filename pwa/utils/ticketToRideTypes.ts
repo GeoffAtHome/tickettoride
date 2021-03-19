@@ -41,6 +41,8 @@ export interface Game {
   lastHand: string;
   playerData: PlayerData;
   firstCard: Boolean;
+  from: string;
+  to: string;
 }
 
 export interface Player {

@@ -29,9 +29,9 @@ export function validateRoute(route: Array<CardAndCount>, tunnelLaid: boolean) {
   if (set.size === 2) {
     // Must include a locomotive
     let result = false;
-    set.forEach(card => {
+    for (const card of set) {
       if (card.name === LOCOMOTIVE) result = true;
-    });
+    }
 
     return result;
   }

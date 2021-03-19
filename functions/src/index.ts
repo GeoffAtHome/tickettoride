@@ -373,6 +373,8 @@ export const newGame = functions
       lastHand: "",
       lastPlayer: "",
       lastTurn: "",
+      from: "",
+      to: "",
     };
 
     // Now create the: game, deck and discard piles.
@@ -383,48 +385,56 @@ export const newGame = functions
     return "newGame";
   });
 
-export const layRoute = functions
-  .region("europe-west2")
-  .https.onCall(
-    async (
-      data: { game: string; player: string; cards: Array<string> },
-      context
-    ) => {
-      const { game, player, cards } = data;
-      const whosTurn = await getData(game, "game/whosTurn");
+export const layRoute = functions.region("europe-west2").https.onCall(
+  async (
+    data: {
+      game: string;
+      player: string;
+      cards: Array<string>;
+      from: string;
+      to: string;
+    },
+    context
+  ) => {
+    const { game, player, cards, from, to } = data;
+    const whosTurn = await getData(game, "game/whosTurn");
 
-      if (whosTurn !== player) return `${whosTurn}'s turn.`;
+    if (whosTurn !== player) return `${whosTurn}'s turn.`;
 
-      const cardsLeftInHand = await removeCardsFromHand(game, player, cards);
+    const cardsLeftInHand = await removeCardsFromHand(game, player, cards);
 
-      // Workout score based on tunnel cards
-      const primaryCard = getPrimaryCard(cards);
-      let routeLength = cards.length;
+    // Workout score based on tunnel cards
+    const primaryCard = getPrimaryCard(cards);
+    let routeLength = cards.length;
 
-      // Workout score based on tunnel cards
-      const tunnel: Array<string> = getCardsFromString(
-        await getData(game, "game/tunnel")
-      );
+    // Workout score based on tunnel cards
+    const tunnel: Array<string> = getCardsFromString(
+      await getData(game, "game/tunnel")
+    );
 
-      // Set up the last turn
-      await setData(game, "game/lastPlayer", player);
-      await setData(
-        game,
-        "game/lastTurn",
-        tunnel.length === 0 ? LAY_ROUTE : LAY_ROUTE_WITH_TUNNEL
-      );
-      await setData(game, "game/lastHand", cards);
+    // Set up the last turn
+    await setData(game, "game/lastPlayer", player);
+    await setData(
+      game,
+      "game/lastTurn",
+      tunnel.length === 0 ? LAY_ROUTE : LAY_ROUTE_WITH_TUNNEL
+    );
+    await setData(game, "game/lastHand", cards);
 
-      tunnel.forEach((element) => {
-        if (element === LOCOMOTIVE || element === primaryCard) routeLength -= 1;
-      });
+    tunnel.forEach((element) => {
+      if (element === LOCOMOTIVE || element === primaryCard) routeLength -= 1;
+    });
 
-      // End the turn
-      await endTurn(game, player, cardsLeftInHand, routeLength, 0);
+    // Save route details
+    await setData(game, "game/from", from);
+    await setData(game, "game/to", to);
 
-      return "Route laid";
-    }
-  );
+    // End the turn
+    await endTurn(game, player, cardsLeftInHand, routeLength, 0);
+
+    return "Route laid";
+  }
+);
 
 export const takeTopCard = functions
   .region("europe-west2")
