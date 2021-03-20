@@ -79,21 +79,11 @@ function fromRoutes() {
 
 function getColours(colours: Array<routeColours>) {
   const result: Array<string> = [];
-  colours.forEach(c => {
-    if (c === routeColours.wild) {
-      [
-        BLACK,
-        BLUE,
-        GREEN,
-        ORANGE,
-        PINK,
-        RED,
-        WHITE,
-        YELLOW,
-        LOCOMOTIVE,
-      ].forEach(x => result.push(x));
-    } else result.push(c.toString());
-  });
+  for (const c of colours) {
+    if (c === routeColours.wild)
+      return [BLACK, BLUE, GREEN, ORANGE, PINK, RED, WHITE, YELLOW, LOCOMOTIVE];
+    result.push(c.toString());
+  }
 
   return result;
 }
@@ -232,12 +222,20 @@ export class PlayerView extends LitElement {
     return [
       SharedStyles,
       css`
+        mwc-icon {
+          --mdc-icon-size: 12px;
+        }
+
         mwc-button {
           z-index: 1;
         }
 
-        #routeCard {
+        .routeCard {
           --card-size: 50px;
+        }
+
+        .iconList {
+          width: 25px;
         }
       `,
     ];
@@ -310,16 +308,25 @@ export class PlayerView extends LitElement {
           @selected="${this.colourSelected}"
           ?disabled="${this.routeTo === '' || this.routeFrom === ''}"
         >
-          ${this.routeColours
-            .sort()
-            .map(
-              item =>
-                html`<mwc-list-item
-                  ?selected="${item == this.routeColour}"
-                  value="${item}"
-                  >${item}</mwc-list-item
-                >`
-            )}
+          ${this.routeColours.sort().map(
+            item =>
+              html`<mwc-list-item
+                ?selected="${item == this.routeColour}"
+                value="${item}"
+              >
+                <mwc-icon>
+                  <slot>
+                    <img
+                      class="iconList"
+                      src="assets/${item}.webp"
+                      alt="${item}"
+                      loading="lazy"
+                    />
+                  </slot>
+                </mwc-icon>
+                ${item}
+              </mwc-list-item>`
+          )}
         </mwc-select>
         <mwc-button
           raised
@@ -329,7 +336,7 @@ export class PlayerView extends LitElement {
           >${tunnelIcon}</mwc-button
         >
         <card-count
-          id="routeCard"
+          class="routeCard"
           ?active="${this.selectedRoute.length -
             this.selectedRoute.locomotives ===
             0 || this.routeColour === ''}"
@@ -342,7 +349,7 @@ export class PlayerView extends LitElement {
           ).toString()}"
         ></card-count>
         <card-count
-          id="routeCard"
+          class="routeCard"
           ?active="${this.selectedRoute.locomotives === 0}"
           .card="${{
             name: LOCOMOTIVE,
