@@ -64,8 +64,16 @@ export const SharedStyles = css`
     justify-content: center;
   }
 
+  card-count {
+    display: inline-block;
+  }
+
   card-count,
   card-view {
     margin: 5px;
+  }
+
+  card-count[active] {
+    display: none;
   }
 `;

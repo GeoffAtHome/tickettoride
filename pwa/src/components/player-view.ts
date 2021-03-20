@@ -18,12 +18,20 @@ import {
   query,
 } from 'lit-element';
 
-import { getHand, validateRoute } from './card-deck';
+import { getHand, validateStation } from './card-deck';
 import {
+  BLACK,
+  BLUE,
   CardAndCount,
+  GREEN,
   LOCOMOTIVE,
+  ORANGE,
+  PINK,
   Player,
+  RED,
   ValidRouteLengths,
+  WHITE,
+  YELLOW,
 } from '../../utils/ticketToRideTypes';
 
 // These are the shared styles needed by this element.
@@ -74,14 +82,15 @@ function getColours(colours: Array<routeColours>) {
   colours.forEach(c => {
     if (c === routeColours.wild) {
       [
-        'black',
-        'blue',
-        'green',
-        'orange',
-        'pink',
-        'red',
-        'white',
-        'yellow',
+        BLACK,
+        BLUE,
+        GREEN,
+        ORANGE,
+        PINK,
+        RED,
+        WHITE,
+        YELLOW,
+        LOCOMOTIVE,
       ].forEach(x => result.push(x));
     } else result.push(c.toString());
   });
@@ -97,6 +106,57 @@ function getRoute(from: string, to: string) {
     );
   });
   return route[0];
+}
+
+function checkRoute(
+  route: Array<string>,
+  routeColour: string,
+  routeLocomotives: number
+): boolean {
+  let locomotives = 0;
+  for (const card of route) {
+    switch (card) {
+      case LOCOMOTIVE:
+        locomotives += 1;
+        break;
+
+      default:
+        if (card !== routeColour) return false;
+        break;
+    }
+  }
+  if (routeLocomotives !== 0) return locomotives === routeLocomotives;
+
+  return true;
+}
+
+function validateRoute(
+  routeType: rType,
+  tunnelLaid: boolean,
+  route: Array<string>,
+  tunnel: Array<string>,
+  routeLength: number,
+  routeLocomotives: number,
+  routeColour: string
+): boolean {
+  let extraCards = 0;
+
+  switch (routeType) {
+    case rType.train:
+    case rType.ferry:
+      // The cards in the hand must match the colour or contain a locomotive
+      if (route.length !== routeLength) return false;
+      break;
+
+    case rType.tunnel:
+      if (!tunnelLaid) return false;
+      for (const card of tunnel) {
+        if (card === LOCOMOTIVE || card === routeColour) extraCards += 1;
+      }
+      if (route.length !== routeLength + extraCards) return false;
+      break;
+  }
+  return checkRoute(route, routeColour, routeLocomotives);
 }
 
 @customElement('player-view')
@@ -250,7 +310,6 @@ export class PlayerView extends LitElement {
           @selected="${this.colourSelected}"
           ?disabled="${this.routeTo === '' || this.routeFrom === ''}"
         >
-          >
           ${this.routeColours
             .sort()
             .map(
@@ -271,6 +330,9 @@ export class PlayerView extends LitElement {
         >
         <card-count
           id="routeCard"
+          ?active="${this.selectedRoute.length -
+            this.selectedRoute.locomotives ===
+            0 || this.routeColour === ''}"
           .card="${{
             name: this.routeColour,
             count: this.selectedRoute.length - this.selectedRoute.locomotives,
@@ -281,6 +343,7 @@ export class PlayerView extends LitElement {
         ></card-count>
         <card-count
           id="routeCard"
+          ?active="${this.selectedRoute.locomotives === 0}"
           .card="${{
             name: LOCOMOTIVE,
             count: this.selectedRoute.locomotives,
@@ -312,8 +375,17 @@ export class PlayerView extends LitElement {
     this.route.push(this.hand.splice(cardIndex, 1)[0]);
     this.theHand = getHand(this.hand);
     this.theRoute = getHand(this.route);
-    this.routeValid = this.validateRoute();
-    this.stationValid = validateRoute(getHand(this.route), this.tunnelLaid);
+    this.routeValid = validateRoute(
+      this.selectedRoute.routeType,
+      this.tunnelLaid,
+      this.route,
+      this.tunnel,
+      this.selectedRoute.length,
+      this.selectedRoute.locomotives,
+      this.routeColour
+    );
+
+    this.stationValid = validateStation(getHand(this.route), this.tunnelLaid);
   }
 
   private routeClicked(event: CustomEvent) {
@@ -326,50 +398,16 @@ export class PlayerView extends LitElement {
     this.hand.push(this.route.splice(cardIndex, 1)[0]);
     this.theHand = getHand(this.hand);
     this.theRoute = getHand(this.route);
-    this.routeValid = this.validateRoute();
-    this.stationValid = validateRoute(getHand(this.route), this.tunnelLaid);
-  }
-
-  private CheckRoute(route: Array<string>): boolean {
-    let locomotives = 0;
-    for (const card of route) {
-      switch (card) {
-        case LOCOMOTIVE:
-          locomotives += 1;
-          break;
-
-        default:
-          if (card !== this.routeColour) return false;
-          break;
-      }
-    }
-    if (this.selectedRoute.locomotives !== 0)
-      return locomotives === this.selectedRoute.locomotives;
-
-    return true;
-  }
-
-  private validateRoute(): boolean {
-    const route = this.route;
-    let extraCards = 0;
-
-    switch (this.selectedRoute.routeType) {
-      case rType.train:
-      case rType.ferry:
-        // The cards in the hand must match the colour or contain a locomotive
-        if (route.length !== this.selectedRoute.length) return false;
-        return this.CheckRoute(route);
-
-      case rType.tunnel:
-        if (!this.tunnelLaid) return false;
-        for (const card of this.tunnel) {
-          if (card === LOCOMOTIVE || card === this.routeColour) extraCards += 1;
-        }
-        if (route.length !== this.selectedRoute.length + extraCards)
-          return false;
-
-        return this.CheckRoute(route);
-    }
+    this.routeValid = validateRoute(
+      this.selectedRoute.routeType,
+      this.tunnelLaid,
+      this.route,
+      this.tunnel,
+      this.selectedRoute.length,
+      this.selectedRoute.locomotives,
+      this.routeColour
+    );
+    this.stationValid = validateStation(getHand(this.route), this.tunnelLaid);
   }
 
   protected firstUpdated(_changedProperties: any) {

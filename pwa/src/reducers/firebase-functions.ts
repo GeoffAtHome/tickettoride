@@ -4,7 +4,7 @@ import 'firebase/functions';
 import { notifyMessage } from '../actions/app';
 import { store } from '../store';
 
-const local = false;
+const local = window.location.hostname === 'localhost';
 const databaseURL = local
   ? 'http://localhost:9010/?ns=ticket-to-ride-game-default-rtdb'
   : 'https://ticket-to-ride-game-default-rtdb.europe-west1.firebasedatabase.app';

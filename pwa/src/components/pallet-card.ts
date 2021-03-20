@@ -168,7 +168,7 @@ export class PalletCard extends PageViewElement {
       <mwc-dialog
         id="lastPlayer"
         hideActions
-        heading="${this.lastPlayer} - ${this.lastTurn}"
+        heading="${this.dialogHeading()}"
         @click="${this.closeDialog}"
       >
         ${this.getPlayedHand()}
@@ -339,19 +339,23 @@ export class PalletCard extends PageViewElement {
 
       case LAY_ROUTE:
       case LAY_ROUTE_WITH_TUNNEL:
-        return getHand([...this.lastHand])
-          .sort((a, b) => sortOrder[a.name] - sortOrder[b.name])
-          .map(item => {
-            return html`${this.from} to ${this.to}
-              <card-count
+        return html`<div>${this.from} to ${this.to}</div>
+          ${getHand([...this.lastHand])
+            .sort((a, b) => sortOrder[a.name] - sortOrder[b.name])
+            .map(item => {
+              return html` <card-count
                 class="dialog"
                 .card="${item}"
                 @clicked-card="${this.closeDialog}"
               ></card-count>`;
-          });
+            })} `;
 
       case TAKE_ROUTE_CARDS:
         return html`<div>${cardsIcon}</div>`;
     }
+  }
+  private dialogHeading() {
+    if (this.lastPlayer === this.player) return this.lastTurn;
+    return this.lastPlayer + ' - ' + this.lastTurn;
   }
 }
