@@ -339,7 +339,9 @@ export class PlayerView extends LitElement {
           class="routeCard"
           ?active="${this.selectedRoute.length -
             this.selectedRoute.locomotives ===
-            0 || this.routeColour === ''}"
+            0 ||
+          this.routeColour === '' ||
+          this.routeColour === LOCOMOTIVE}"
           .card="${{
             name: this.routeColour,
             count: this.selectedRoute.length - this.selectedRoute.locomotives,
@@ -353,7 +355,10 @@ export class PlayerView extends LitElement {
           ?active="${this.selectedRoute.locomotives === 0}"
           .card="${{
             name: LOCOMOTIVE,
-            count: this.selectedRoute.locomotives,
+            count:
+              this.routeColour === LOCOMOTIVE
+                ? this.selectedRoute.length
+                : this.selectedRoute.locomotives,
           }}"
           .count="${this.selectedRoute.locomotives.toString()}"
         ></card-count>
