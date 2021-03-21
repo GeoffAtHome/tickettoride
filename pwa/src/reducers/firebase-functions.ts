@@ -85,10 +85,16 @@ export async function takeTopCard(game: string, player: string) {
 export async function layStation(
   game: string,
   player: string,
-  cards: Array<string>
+  cards: Array<string>,
+  station: string
 ) {
   const layStation = fbFunctions.httpsCallable('layStation');
-  layStation({ game: game, player: player, cards: cards }).then(result => {
+  layStation({
+    game: game,
+    player: player,
+    cards: cards,
+    station: station,
+  }).then(result => {
     console.log(result.data);
   });
 }

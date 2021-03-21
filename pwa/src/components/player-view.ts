@@ -271,7 +271,8 @@ export class PlayerView extends LitElement {
             ?disabled=${!this.stationValid ||
             this.player !== this.whosTurn ||
             this.tunnelLaid ||
-            4 - this.stations !== this.route.length}
+            this.routeFrom === '' ||
+            this.routeTo !== ''}
             @click="${this.layStation}"
             >${stationIcon}</mwc-button
           >
@@ -434,7 +435,11 @@ export class PlayerView extends LitElement {
 
   private layStation() {
     const event = new CustomEvent('lay-station', {
-      detail: { player: this.player, cards: this.route },
+      detail: {
+        player: this.player,
+        cards: this.route,
+        station: this.routeFrom,
+      },
     });
     this.dispatchEvent(event);
     this.route = [];

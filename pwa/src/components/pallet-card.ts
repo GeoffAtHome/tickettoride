@@ -302,8 +302,8 @@ export class PalletCard extends PageViewElement {
   }
 
   private async layStation(event: CustomEvent) {
-    const { cards, player } = event.detail;
-    await layStation(this.gameName, player, cards);
+    const { cards, player, station } = event.detail;
+    await layStation(this.gameName, player, cards, station);
   }
 
   private async takeCardFromPallet(event: CustomEvent) {
@@ -329,13 +329,14 @@ export class PalletCard extends PageViewElement {
 
       case TAKE_PALLET_CARD_1:
       case TAKE_PALLET_CARD_2:
-      case LAY_STATION:
       case LAY_TUNNEL:
-        return html`<card-view
-          class="dialog"
-          .card=${this.lastHand}
-          @clicked-card="${this.closeDialog}"
-        ></card-view>`;
+      case LAY_STATION:
+        return html`<div>${this.from}</div>
+          <card-view
+            class="dialog"
+            .card=${this.lastHand}
+            @clicked-card="${this.closeDialog}"
+          ></card-view>`;
 
       case LAY_ROUTE:
       case LAY_ROUTE_WITH_TUNNEL:

@@ -151,9 +151,7 @@ async function setData(game: string, path: string, data: any) {
   const dbData = db
     .ref(game + "/" + path)
     .set(data)
-    .then((details) => {
-      console.log("Save successful");
-    })
+    .then((details) => {})
     .catch((e) => console.log("Unable to read data: " + e));
 
   await dbData;
@@ -562,30 +560,34 @@ export const takeCardFromPallet = functions
     }
   );
 
-export const layStation = functions
-  .region("europe-west2")
-  .https.onCall(
-    async (
-      data: { game: string; player: string; cards: Array<string> },
-      context
-    ) => {
-      const { game, player, cards } = data;
-      const whosTurn = await getData(game, "game/whosTurn");
+export const layStation = functions.region("europe-west2").https.onCall(
+  async (
+    data: {
+      game: string;
+      player: string;
+      cards: Array<string>;
+      station: string;
+    },
+    context
+  ) => {
+    const { game, player, cards, station } = data;
+    const whosTurn = await getData(game, "game/whosTurn");
 
-      if (whosTurn !== player) return `${whosTurn}'s turn.`;
+    if (whosTurn !== player) return `${whosTurn}'s turn.`;
 
-      // Set up the last turn
-      await setData(game, "game/lastPlayer", player);
-      await setData(game, "game/lastTurn", LAY_STATION);
-      await setData(game, "game/lastHand", cards);
+    // Set up the last turn
+    await setData(game, "game/lastPlayer", player);
+    await setData(game, "game/lastTurn", LAY_STATION);
+    await setData(game, "game/lastHand", cards);
+    await setData(game, "game/from", station);
 
-      const cardsLeftInHand = await removeCardsFromHand(game, player, cards);
+    const cardsLeftInHand = await removeCardsFromHand(game, player, cards);
 
-      // Reduce counts of stations
-      await endTurn(game, player, cardsLeftInHand, 0, 1);
-      return "Station laid";
-    }
-  );
+    // Reduce counts of stations
+    await endTurn(game, player, cardsLeftInHand, 0, 1);
+    return "Station laid";
+  }
+);
 
 export const layTunnel = functions
   .region("europe-west2")
@@ -600,8 +602,6 @@ export const layTunnel = functions
       if (whosTurn !== player) return `${whosTurn}'s turn.`;
 
       const primaryCard = getPrimaryCard(cards);
-      console.log("Primary card: " + primaryCard);
-      console.log("Cards:" + JSON.stringify(cards));
 
       // Set up the last turn
       await setData(game, "game/lastPlayer", player);
